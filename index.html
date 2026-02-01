@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Миссия: Киберщит | Ердюков Ярослав</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- ЖИВОЙ ФОН --- */
+        body {
+            margin: 0;
+            background: linear-gradient(-45deg, #141e30, #243b55, #000000, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            user-select: none; /* Запрет выделения текста для ощущения "приложения" */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- ИГРОВАЯ КОНСОЛЬ --- */
+        #game-container {
+            position: relative;
+            width: 95%;
+            height: 95%;
+            max-width: 1280px;
+            max-height: 720px;
+            background: #000;
+            border: 4px solid #00d2ff;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.5);
+            animation: pulseBorder 4s infinite alternate;
+            overflow: hidden;
+        }
+
+        @keyframes pulseBorder {
+            from { box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); border-color: #0077ff; }
+            to { box-shadow: 0 0 50px rgba(0, 210, 255, 0.8); border-color: #00d2ff; }
+        }
+
+        /* Видео (с улучшением картинки) */
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            filter: contrast(1.1) saturate(1.2);
+        }
+
+        /* Эффект сетки монитора */
+        #game-container::after {
+            content: " ";
+            display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 0, 0, 0.3) 3px);
+            z-index: 5; pointer-events: none;
+        }
+
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ (HUD) --- */
+        #hud-panel {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            z-index: 20;
+            text-shadow: 2px 2px 4px black;
+            display: none;
+        }
+
+        .hud-box {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00d2ff;
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px #00d2ff;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #health-fill {
+            display: inline-block; width: 150px; height: 15px; background: #00ff00;
+            border-radius: 10px; margin-left: 10px;
+            box-shadow: 0 0 10px #00ff00;
+            transition: width 0.5s, background 0.5s;
+        }
+
+        /* --- ИНТЕРФЕЙСЫ --- */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 16, 26, 0.92);
+            backdrop-filter: blur(5px);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; z-index: 30;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 {
+            font-size: 3.5rem; color: #00d2ff; text-transform: uppercase;
+            text-shadow: 0 0 25px #00d2ff; margin-bottom: 10px;
+            letter-spacing: 4px; font-weight: 900;
+        }
+
+        h2 { font-size: 1.5rem; color: #ddd; margin-bottom: 40px; }
+
+        .author-badge {
+            border: 2px solid #00d2ff; padding: 20px 40px;
+            background: linear-gradient(45deg, rgba(0,210,255,0.1), rgba(0,0,0,0.5));
+            margin-bottom: 40px; border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
+        }
+
+        /* Кнопки */
+        .btn {
+            background: linear-gradient(180deg, #00d2ff, #0077ff);
+            border: none; border-bottom: 4px solid #0044aa;
+            color: white; padding: 20px 40px;
+            font-size: 1.5rem; font-family: 'Orbitron', sans-serif; font-weight: bold;
+            cursor: pointer; margin: 20px; border-radius: 50px;
+            text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 10px 20px rgba(0, 210, 255, 0.4);
+            transition: all 0.1s;
+            position: relative; top: 0;
+        }
+
+        .btn:hover {
+            background: linear-gradient(180deg, #33ddff, #3399ff);
+            box-shadow: 0 0 30px #00d2ff;
+        }
+
+        .btn:active { top: 4px; border-bottom: 0px; box-shadow: inset 0 0 10px black; }
+
+        .btn-danger {
+             background: linear-gradient(180deg, #ff416c, #ff4b2b);
+             border-bottom: 4px solid #aa2b1b;
+             box-shadow: 0 10px 20px rgba(255, 65, 108, 0.4);
+        }
+        .btn-danger:hover { background: linear-gradient(180deg, #ff618c, #ff6b4b); box-shadow: 0 0 30px #ff416c; }
+
+        .hidden { display: none !important; }
+
+        /* Всплывающая тревога */
+        .alert-popup {
+            position: absolute; top: 25%;
+            background: rgba(220, 0, 0, 0.95);
+            border: 3px solid #ff0000; padding: 30px;
+            font-size: 2rem; color: yellow; text-shadow: 2px 2px 0px red;
+            box-shadow: 0 0 100px red; border-radius: 15px;
+            display: none; z-index: 100;
+            animation: flashAlert 0.5s infinite alternate;
+        }
+        @keyframes flashAlert { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+        /* Диалог */
+        .dialog-box {
+            background: rgba(0,0,0,0.8); border: 2px solid #00d2ff;
+            padding: 20px; border-radius: 20px;
+            display: flex; align-items: center; max-width: 800px;
+            margin-bottom: 30px; box-shadow: inset 0 0 30px rgba(0, 210, 255, 0.2);
+        }
+        
+        .ai-avatar {
+            font-size: 4rem; margin-right: 20px;
+            background: #000; border: 2px solid #00d2ff; border-radius: 50%;
+            width: 80px; height: 80px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 20px #00d2ff;
+        }
+
+        #choice-desc { font-size: 1.4rem; line-height: 1.6; color: #fff; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <audio id="sfx-click" src="click.mp3" preload="auto"></audio>
+    <audio id="sfx-alarm" src="alarm.mp3" preload="auto"></audio>
+    <audio id="sfx-win" src="win.mp3" preload="auto"></audio>
+
+    <div id="game-container">
+        <video id="mainVideo" playsinline></video>
+
+        <div id="hud-panel">
+            <div class="hud-box">🛡️ ЩИТ: <span id="health-fill"></span> <span id="health-val">100%</span></div>
+            <div class="hud-box">💎 ОЧКИ: <span id="score-val">0</span></div>
+        </div>
+        
+        <div id="alert-popup" class="alert-popup">⚠️ ВНИМАНИЕ! УГРОЗА!</div>
+
+        <div id="start-screen" class="overlay">
+            <h1>🚀 МИССИЯ: КИБЕРЩИТ</h1>
+            <h2>Стань защитником цифрового мира!</h2>
+            
+            <div class="author-badge">
+                <p><strong>Пилот миссии:</strong> Ердюков Ярослав</p>
+                <p>МБОУ СОШ Селихинского сельского поселения</p>
+                <p>Конкурс "Большие вызовы" 2026</p>
+            </div>
+            
+            <button class="btn" onclick="startGame()">🎮 СТАРТ ИГРЫ</button>
+        </div>
+
+        <div id="ui-choice" class="overlay hidden">
+            <h1 id="choice-title" style="color: #ffcc00">ВХОДЯЩИЙ ЗАПРОС</h1>
+            
+            <div class="dialog-box">
+                <div class="ai-avatar">🤖</div>
+                <p id="choice-desc"></p>
+            </div>
+
+            <div id="buttons-container"></div>
+        </div>
+
+        <div id="game-over-screen" class="overlay hidden" style="background: rgba(50,0,0,0.95)">
+            <h1 style="color: #ff3333; font-size: 5rem;">👾 GAME OVER</h1>
+            <p style="font-size: 1.8rem; margin-bottom: 30px;">Вирус уничтожил систему.</p>
+            <button class="btn btn-danger" onclick="location.reload()">🔄 РЕСТАРТ</button>
+        </div>
+    </div>
+
+    <script>
+        const videoPlayer = document.getElementById('mainVideo');
+        const startScreen = document.getElementById('start-screen');
+        const uiChoice = document.getElementById('ui-choice');
+        const choiceTitle = document.getElementById('choice-title');
+        const choiceDesc = document.getElementById('choice-desc');
+        const btnsContainer = document.getElementById('buttons-container');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const alertPopup = document.getElementById('alert-popup');
+        const hudPanel = document.getElementById('hud-panel');
+        const healthFill = document.getElementById('health-fill');
+        const healthVal = document.getElementById('health-val');
+        const scoreVal = document.getElementById('score-val');
+
+        let score = 0;
+
+        // Система воспроизведения звуков
+        function playSound(id) {
+            const sound = document.getElementById(id);
+            if (sound) {
+                sound.currentTime = 0;
+                // Настройка громкости для баланса
+                if(id === 'sfx-win') sound.volume = 0.6;
+                else if(id === 'sfx-alarm') sound.volume = 0.4;
+                else sound.volume = 0.5;
+                
+                sound.play().catch(e => console.log("Браузер ограничил автозвук"));
+            }
+        }
+
+        const videos = {
+            intro: 'intro.mp4', phishing: 'phishing.mp4', virus_map: 'virus_map.mp4',
+            glitch: 'glitch.mp4', ai_scan: 'ai_scan.mp4', win: 'win.mp4', lose: 'lose.mp4'
+        };
+
+        function startGame() {
+            playSound('sfx-click');
+            startScreen.classList.add('hidden');
+            hudPanel.style.display = 'flex';
+            videoPlayer.style.display = 'block';
+            playVideo(videos.intro, () => {
+                playVideo(videos.phishing, onPhishingEnd);
+            });
+        }
+
+        function playVideo(src, onEndedCallback) {
+            videoPlayer.src = src;
+            videoPlayer.play();
+            videoPlayer.onended = onEndedCallback;
+        }
+
+        function updateHUD(health, pointsToAdd) {
+            healthFill.style.width = health + '%';
+            healthVal.innerText = health + '%';
+            
+            if(pointsToAdd > 0) {
+                score += pointsToAdd;
+                scoreVal.innerText = score;
+                scoreVal.style.color = '#00ff00';
+                setTimeout(() => { scoreVal.style.color = 'white'; }, 500);
+            }
+
+            if (health < 50) {
+                healthFill.style.background = '#ff3333'; healthFill.style.boxShadow = '0 0 15px #ff3333';
+            } else if (health < 80) {
+                healthFill.style.background = '#ffcc00'; healthFill.style.boxShadow = '0 0 15px #ffcc00';
+            } else {
+                healthFill.style.background = '#00ff00'; healthFill.style.boxShadow = '0 0 15px #00ff00';
+            }
+        }
+
+        // --- ЭТАП 1: ФИШИНГ ---
+        function onPhishingEnd() {
+            showChoice("⚠️ ОБНАРУЖЕНА ЛОВУШКА!", 
+                "Оператор 'Карандаш' хочет кликнуть на рекламу с призом. ИИ-помощник предупреждает: это ФИШИНГ! Твои действия, командир?",
+                [
+                    { text: "🛡️ БЛОКИРОВАТЬ (+100 очков)", action: choiceBlockLink, style: "btn" },
+                    { text: "🤔 РАЗРЕШИТЬ (Рискнуть)", action: choiceAllowLink, style: "btn-danger" }
+                ]
+            );
+        }
+
+        function choiceBlockLink() {
+            playSound('sfx-click');
+            // Сюжетный поворот
+            showAlert("ОШИБКА! ОПЕРАТОР ОБОШЕЛ ЗАЩИТУ!");
+            playSound('sfx-alarm'); // Звук тревоги
+            uiChoice.classList.add('hidden');
+            setTimeout(() => { updateHUD(70, 100); }, 500); 
+            startVirusSequence();
+        }
+
+        function choiceAllowLink() {
+            playSound('sfx-click');
+            showAlert("ВНИМАНИЕ! ВНЕДРЕНИЕ ВИРУСА!");
+            playSound('sfx-alarm'); // Звук тревоги
+            uiChoice.classList.add('hidden');
+            setTimeout(() => { updateHUD(70, 0); }, 500);
+            startVirusSequence();
+        }
+
+        function showAlert(text) {
+            alertPopup.innerText = text;
+            alertPopup.style.display = 'block';
+            setTimeout(() => { alertPopup.style.display = 'none'; }, 3000);
+        }
+
+        // --- ЭТАП 2: ЗАРАЖЕНИЕ ---
+        function startVirusSequence() {
+            playVideo(videos.virus_map, () => {
+                updateHUD(45, 0);
+                playVideo(videos.glitch, () => {
+                    updateHUD(15, 0); // Критический уровень
+                    playSound('sfx-alarm'); // Снова тревога
+                    playVideo(videos.ai_scan, onAiScanEnd);
+                });
+            });
+        }
+
+        // --- ЭТАП 3: РЕШЕНИЕ ---
+        function onAiScanEnd() {
+            showChoice("🤖 ИИ ГОТОВ К ДЕЙСТВИЮ", 
+                "Система захвачена шифровальщиком (Ransomware). ИИ проанализировал код вируса. Какую команду выполнить?",
+                [
+                    { text: "🔥 УДАЛИТЬ ЗАРАЖЕННОЕ (Риск!)", action: triggerLoss, style: "btn-danger" },
+                    { text: "🧩 ЗАПУСТИТЬ ДЕШИФРОВКУ (+5000 очков)", action: triggerWin, style: "btn" }
+                ]
+            );
+        }
+
+        // --- ФИНАЛЫ ---
+        function triggerLoss() {
+            playSound('sfx-click');
+            // Если файла lose нет, используем тревогу как звук проигрыша
+            playSound('sfx-alarm'); 
+            updateHUD(0, 0);
+            uiChoice.classList.add('hidden');
+            playVideo(videos.lose, () => {
+                videoPlayer.style.display = 'none';
+                gameOverScreen.classList.remove('hidden');
+            });
+        }
+
+        function triggerWin() {
+            playSound('sfx-click');
+            uiChoice.classList.add('hidden');
+            playVideo(videos.win, () => {
+                // Включаем победную музыку
+                playSound('sfx-win'); 
+                updateHUD(100, 5000);
+                setTimeout(() => {
+                     alert("🎉 ПОБЕДА! МИССИЯ ВЫПОЛНЕНА! 🎉\n\nПилот: Ердюков Ярослав\nИтоговый счет: " + score);
+                     location.reload();
+                }, 1000);
+            });
+        }
+
+        function showChoice(title, desc, buttons) {
+            choiceTitle.innerText = title;
+            choiceDesc.innerText = desc;
+            btnsContainer.innerHTML = '';
+            
+            buttons.forEach(btn => {
+                const buttonElement = document.createElement('button');
+                buttonElement.innerText = btn.text;
+                buttonElement.className = `btn ${btn.style || ''}`;
+                buttonElement.onclick = btn.action;
+                btnsContainer.appendChild(buttonElement);
+            });
+            uiChoice.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
