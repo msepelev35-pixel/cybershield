@@ -73,6 +73,9 @@
             display: none; 
             opacity: 0; transition: opacity 0.4s;
             background: #000;
+            /* Принудительное использование видеокарты смартфона */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
         }
         video.playing { opacity: 1; display: block; }
 
@@ -244,8 +247,8 @@
 
         <div id="side-menu" class="collapsed">
             <div class="close-menu-btn" onclick="window.UI.toggleTerminal()">&#10005;</div>
-            <div class="log-entry log-info">> Загрузка ядра системы v5.2...</div>
-            <div class="log-entry log-info">> Оптимизация видео-потока... OK</div>
+            <div class="log-entry log-info">> Загрузка ядра системы v5.3...</div>
+            <div class="log-entry log-info">> Оптимизация GPU потока... OK</div>
             <div class="log-entry log-info">> Ожидание авторизации...</div>
         </div>
 
@@ -324,7 +327,7 @@
 
             <div id="end-screen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h1 id="end-title">КОНЕЦ</h1>
+                    <h1>КОНЕЦ</h1>
                     <h2 id="end-score" style="font-size: 5rem; color: white; margin: 30px 0; text-shadow: 0 0 30px var(--neon-blue);">0</h2>
                     <button class="btn" onclick="location.reload()">ГЛАВНОЕ МЕНЮ</button>
                 </div>
@@ -519,7 +522,6 @@
                 this.toggleScreen('start-screen', false);
                 document.getElementById('hud').classList.remove('hidden');
                 
-                // Включаем звук видео после клика
                 const v = document.getElementById('video-layer');
                 v.muted = false; 
                 
@@ -542,13 +544,14 @@
                 v.classList.remove('playing');
                 sim.classList.remove('fade-out');
                 
-                // PERFORMANCE FIX: Явный сброс и загрузка
                 v.pause();
                 v.src = s.src;
                 v.load(); 
                 
-                // Ждем готовности телефона воспроизвести без рывков
                 const onReady = () => {
+                    // Увеличиваем скорость воспроизведения на 10% для плавности на мобильных
+                    v.playbackRate = 1.1;
+                    
                     v.play().then(() => {
                         v.classList.add('playing');
                         sim.classList.add('fade-out');
@@ -557,7 +560,6 @@
                 };
                 v.addEventListener('canplaythrough', onReady);
                 
-                // Резервный таймер (если видео зависло на 10 сек)
                 this.videoTimeout = setTimeout(() => {
                     if (!v.classList.contains('playing')) this.videoFallback(s);
                 }, 10000);
@@ -649,6 +651,7 @@
                 v.load();
                 
                 const onFinishReady = () => {
+                    v.playbackRate = 1.1; // Финальное видео тоже чуть быстрее
                     v.play().catch(e => this.showFinalScreen(isWin));
                     v.classList.add('playing');
                     sim.classList.add('fade-out');
