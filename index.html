@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Adaptive System</title>
+    <title>Миссия: Киберщит | Cinema System</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- CSS STYLES --- */
@@ -11,15 +11,14 @@
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
             --neon-red: #ff003c;
-            --bg-color: #050505;
-            --glass: rgba(10, 20, 30, 0.90);
+            --bg-color: #000000;
+            --glass: rgba(10, 20, 30, 0.85);
         }
         * { box-sizing: border-box; }
         
         body {
             margin: 0;
             background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 50% 50%, #1a2a3a 0%, #000 100%);
             color: white;
             font-family: 'Orbitron', sans-serif;
             overflow: hidden; 
@@ -35,506 +34,440 @@
             display: flex;
             width: 100%;
             height: 100%;
-            padding: 5px;
-            padding: max(5px, env(safe-area-inset-top)) max(5px, env(safe-area-inset-right)) max(5px, env(safe-area-inset-bottom)) max(5px, env(safe-area-inset-left));
-            gap: 10px;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            gap: 0; 
             transition: all 0.3s ease;
+            position: relative;
         }
 
-        /* --- ЛОГИ (ТЕРМИНАЛ) --- */
-        #system-logs {
-            flex: 1; 
-            background: rgba(0, 0, 0, 0.95);
-            border: 1px solid #333; 
-            border-left: 4px solid var(--neon-blue);
-            padding: 8px; 
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.8rem; 
-            color: var(--neon-blue);
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column-reverse;
-            min-width: 0; 
-            transition: all 0.3s ease;
-            z-index: 5;
-            border-radius: 8px;
-        }
-        
-        #system-logs.collapsed {
-            display: none !important;
-        }
-
-        .log-entry { margin-bottom: 4px; opacity: 0.9; border-bottom: 1px solid #111; padding-bottom: 2px; word-wrap: break-word;}
-        .log-warn { color: var(--neon-red); }
-        .log-success { color: var(--neon-green); }
-        .log-cloud { color: #ffcc00; }
-
-        /* --- ИГРОВОЙ ЭКРАН --- */
+        /* --- ИГРОВОЕ ОКНО --- */
         #game-viewport {
-            flex: 3; 
+            flex: 1; 
             position: relative; 
             background: #000;
-            border: 1px solid var(--neon-blue); 
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
             overflow: hidden; 
             display: flex; 
             flex-direction: column;
-            border-radius: 8px;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
         }
         
+        /* Скан-линии только в вертикальном режиме для стиля */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
-            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 255, 255, 0.03) 3px);
-            pointer-events: none; z-index: 10;
+            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 255, 255, 0.02) 3px);
+            pointer-events: none; z-index: 15;
         }
 
-        video { width: 100%; height: 100%; object-fit: cover; display: none; }
+        video { 
+            width: 100%; height: 100%; 
+            object-fit: cover; /* Заполняет экран без черных полос */
+            display: none; 
+        }
 
+        /* ЗАГЛУШКА (РАДАР) */
         #sim-layer {
             position: absolute; inset: 0; display: none;
             flex-direction: column; justify-content: center; align-items: center;
             background: radial-gradient(circle, #001a33 0%, #000 100%);
+            z-index: 5;
         }
-        .loader-ring {
-            width: 40px; height: 40px;
-            border: 3px solid transparent; border-top-color: var(--neon-blue);
-            border-radius: 50%; animation: spin 1s linear infinite;
+        
+        .radar {
+            width: 120px; height: 120px;
+            border: 2px solid var(--neon-blue);
+            border-radius: 50%;
+            position: relative;
+            background: repeating-radial-gradient(transparent 0, transparent 19px, rgba(0, 243, 255, 0.1) 20px);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+            margin-bottom: 20px;
+            overflow: hidden;
         }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .radar::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 50%; height: 50%;
+            background: linear-gradient(45deg, transparent 50%, rgba(0, 243, 255, 0.8) 100%);
+            transform-origin: 0 0;
+            animation: radar-spin 2s linear infinite;
+        }
+        @keyframes radar-spin { 0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);} }
 
-        /* --- HUD --- */
+        #sim-text {
+            font-size: 1.5rem; letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-blue);
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse { from {opacity: 0.6;} to {opacity: 1;} }
+
+        /* --- ЛОГИ (ТЕРМИНАЛ) --- */
+        #system-logs {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333; 
+            border-left: 3px solid var(--neon-blue);
+            padding: 10px; 
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem; 
+            color: var(--neon-blue);
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column-reverse;
+            z-index: 50; 
+            transition: transform 0.3s ease;
+        }
+        #system-logs.collapsed { display: none !important; }
+        .log-entry { margin-bottom: 4px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        .log-warn { color: var(--neon-red); }
+        .log-success { color: var(--neon-green); }
+
+        /* --- HUD (ИНТЕРФЕЙС) --- */
         #hud {
             position: absolute; top: 0; left: 0; right: 0;
-            padding: 8px; display: flex; justify-content: space-between;
-            z-index: 20; text-transform: uppercase; font-size: 0.75rem; pointer-events: none;
-            width: 100%;
+            padding: 10px; 
+            display: flex; justify-content: space-between;
+            z-index: 60; 
+            text-transform: uppercase; font-size: 0.75rem; 
+            pointer-events: none; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+            transition: opacity 0.3s;
         }
-        .hud-left, .hud-right { display: flex; gap: 6px; pointer-events: auto; align-items: center; }
+        
+        .hud-left, .hud-right { display: flex; gap: 8px; pointer-events: auto; align-items: center; }
         
         .hud-item {
-            background: rgba(0,0,0,0.8); border: 1px solid var(--neon-blue);
-            padding: 4px 8px; border-radius: 4px;
-            display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 5px 10px; border-radius: 20px; 
+            display: flex; align-items: center; gap: 6px; 
+            backdrop-filter: blur(4px);
             white-space: nowrap;
         }
         
         .icon-btn {
-            background: rgba(0, 50, 100, 0.8); border: 1px solid #fff; color: #fff;
-            cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;
+            cursor: pointer; font-size: 1.1rem; padding: 6px; border-radius: 50%;
+            width: 36px; height: 36px;
             display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
-            min-width: 32px;
         }
-        .icon-btn:active { transform: scale(0.95); background: #fff; color: #000; }
+        .icon-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
 
-        #health-bar-container { width: 40px; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
+        #health-bar-container { width: 60px; height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
         #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; }
 
-        /* --- UI OVERLAYS --- */
+        /* --- ЭКРАНЫ --- */
         .overlay {
-            position: absolute; inset: 0; background: var(--glass);
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            position: absolute; inset: 0; 
+            background: rgba(5, 5, 5, 0.85); 
+            backdrop-filter: blur(8px);
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 30;
-            text-align: center; padding: 10px; 
+            justify-content: center; align-items: center; z-index: 100;
+            text-align: center; padding: 20px; 
             overflow-y: auto; 
         }
-        
         .overlay-content {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             width: 100%; min-height: 100%; 
             padding-bottom: 20px; 
         }
-
         .hidden { opacity: 0; pointer-events: none; display: none !important; }
 
-        h1 { color: var(--neon-blue); margin: 0 0 10px 0; font-size: clamp(1.2rem, 5vw, 2rem); line-height: 1.1; }
-        h2 { color: #ccc; font-size: clamp(0.8rem, 3.5vw, 1.1rem); max-width: 90%; margin-bottom: 15px; }
+        h1 { color: var(--neon-blue); margin: 0 0 10px 0; font-size: clamp(1.8rem, 5vw, 3rem); line-height: 1; text-shadow: 0 0 20px rgba(0,243,255,0.4); }
         
         .btn {
-            background: rgba(0, 243, 255, 0.1); color: var(--neon-blue);
-            border: 1px solid var(--neon-blue); padding: 10px 18px;
-            font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
-            cursor: pointer; transition: 0.2s; text-transform: uppercase;
-            margin: 5px; position: relative; border-radius: 4px; 
-            user-select: none; min-width: 120px;
+            background: linear-gradient(90deg, rgba(0,243,255,0.1), rgba(0,243,255,0)); 
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue); border-left: 4px solid var(--neon-blue);
+            padding: 15px 30px;
+            font-family: 'Orbitron', sans-serif; font-size: 1rem; font-weight: bold;
+            cursor: pointer; transition: all 0.2s ease; text-transform: uppercase;
+            margin: 10px; position: relative; 
+            user-select: none; min-width: 180px;
         }
-        .btn:active { transform: scale(0.96); background: var(--neon-blue); color: #000; }
-        .btn-danger { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 0, 60, 0.1); }
+        .btn:active { transform: scale(0.97); background: var(--neon-blue); color: #000; }
+        .btn-danger { 
+            border-color: var(--neon-red); color: var(--neon-red); border-left-color: var(--neon-red);
+            background: linear-gradient(90deg, rgba(255,0,60,0.1), rgba(255,0,60,0)); 
+        }
         .btn-danger:active { background: var(--neon-red); color: white; }
 
         .info-card {
-            background: rgba(0,0,0,0.6); border-left: 3px solid var(--neon-blue);
-            padding: 10px; text-align: left; max-width: 500px; margin-bottom: 15px;
-            font-size: 0.85rem; line-height: 1.4; width: 95%;
+            background: rgba(255,255,255,0.05); border: 1px solid #333;
+            padding: 20px; text-align: left; max-width: 600px; margin-bottom: 20px;
+            font-size: 1rem; line-height: 1.5; width: 90%; border-radius: 8px;
         }
 
-        #admin-panel {
-            width: 95%; max-width: 600px; max-height: 50vh;
-            background: rgba(0,0,0,0.95); border: 1px solid #444;
-            overflow-y: auto; text-align: left; padding: 5px;
-            font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
-        }
+        #admin-panel { width: 100%; max-width: 700px; max-height: 60vh; background: rgba(0,0,0,0.8); border: 1px solid #444; overflow-y: auto; text-align: left; padding: 10px; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid #333; padding: 6px; }
-
-        /* Toast Notification */
-        #toast {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0, 243, 255, 0.9); color: #000;
-            padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.8rem;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 100;
-        }
+        th, td { border-bottom: 1px solid #333; padding: 8px; }
 
         /* =========================================
-           АДАПТИВНАЯ ЛОГИКА (АВТОМАТИЧЕСКАЯ)
+           АДАПТИВНАЯ ЛОГИКА
            ========================================= */
 
+        /* 1. ПОРТРЕТ (ТЕЛЕФОН ВЕРТИКАЛЬНО) */
         @media (orientation: portrait) {
-            #main-wrapper { flex-direction: column; gap: 5px; padding: 0; }
-            #game-viewport { flex: 1; width: 100%; border-radius: 0; border: none; border-bottom: 1px solid var(--neon-blue); }
-            #system-logs { height: 25vh; flex: none; width: 100%; border-radius: 0; border: none; border-top: 1px solid #333; }
-            #system-logs.collapsed { display: none !important; }
-            .btn { width: 85%; }
+            #main-wrapper { flex-direction: column; }
+            /* Логи снизу */
+            #system-logs { bottom: 0; left: 0; right: 0; height: 30vh; border-top: 2px solid var(--neon-blue); border-left: none; }
+            .btn { width: 80%; }
+            #hud { padding-top: max(10px, env(safe-area-inset-top)); }
         }
 
+        /* 2. ЛАНДШАФТ (КИНО-РЕЖИМ - АВТОМАТИЧЕСКИ) */
         @media (orientation: landscape) {
-            #main-wrapper { flex-direction: row; gap: 5px; padding: 0; }
-            
-            @media (max-height: 500px) {
-                 #main-wrapper { padding: 0; }
-                 #system-logs { 
-                     width: 180px; max-width: 30vw;
-                     border-radius: 0; border: none; border-right: 1px solid #333;
-                     font-size: 0.7rem;
-                 }
-                 #game-viewport { border-radius: 0; border: none; }
-                 #hud { padding: 4px; }
+            #main-wrapper { 
+                padding: 0 !important; /* На весь экран */
             }
+            #game-viewport {
+                width: 100vw; height: 100vh;
+            }
+            /* Логи сбоку, чтобы не закрывать центр */
+            #system-logs { top: 0; bottom: 0; left: 0; width: 250px; border-right: 2px solid var(--neon-blue); border-left: none; }
+            /* Меню в ряд */
+            .overlay-content { flex-direction: column; }
+            #choice-buttons { flex-direction: row; }
+            h1 { font-size: 2rem; }
+            .btn { padding: 12px 25px; width: auto; min-width: 150px; }
+            #hud { padding: 10px 20px; }
         }
-
-        /* =========================================
-           РУЧНОЕ УПРАВЛЕНИЕ (ПЕРЕОПРЕДЕЛЕНИЕ)
-           ========================================= */
-        
-        /* ПРИНУДИТЕЛЬНЫЙ ПОРТРЕТ */
-        body.layout-portrait #main-wrapper {
-            flex-direction: column !important;
-            padding: 0 !important;
-        }
-        body.layout-portrait #game-viewport {
-            flex: 1 !important;
-            width: 100% !important;
-            height: auto !important;
-            border-radius: 0 !important;
-            border: none !important;
-            border-bottom: 1px solid var(--neon-blue) !important;
-        }
-        body.layout-portrait #system-logs {
-            height: 25vh !important;
-            width: 100% !important;
-            flex: none !important;
-            border-radius: 0 !important;
-            border: none !important;
-            border-top: 1px solid #333 !important;
-        }
-
-        /* ПРИНУДИТЕЛЬНЫЙ ЛАНДШАФТ */
-        body.layout-landscape #main-wrapper {
-            flex-direction: row !important;
-            padding: 0 !important;
-        }
-        body.layout-landscape #game-viewport {
-            flex: 3 !important;
-            height: 100% !important;
-            width: auto !important;
-            border-radius: 0 !important;
-            border: none !important;
-        }
-        body.layout-landscape #system-logs {
-            height: 100% !important;
-            flex: 1 !important;
-            max-width: 30vw !important;
-            min-width: 150px !important;
-            border-radius: 0 !important;
-            border: none !important;
-            border-right: 1px solid #333 !important;
-        }
-
     </style>
 </head>
 <body>
-
-    <div id="toast">Режим: АВТО</div>
-
+    
     <div id="main-wrapper">
-        <!-- ТЕРМИНАЛ -->
-        <div id="system-logs">
-            <div class="log-entry log-info">> Загрузка...</div>
+        <div id="system-logs" class="collapsed">
+            <div class="log-entry log-info">> Система готова...</div>
         </div>
 
-        <!-- ИГРОВОЕ ОКНО -->
         <div id="game-viewport">
-            <video id="video-layer" playsinline muted></video>
-            <div id="sim-layer"><div class="loader-ring"></div><h2 style="margin-top:20px" id="sim-text">ЗАГРУЗКА...</h2></div>
+            <!-- Видео (без атрибута muted, чтобы был звук) -->
+            <video id="video-layer" playsinline></video>
+            
+            <div id="sim-layer">
+                <div class="radar"></div>
+                <h2 style="margin-top:20px" id="sim-text">ЗАГРУЗКА...</h2>
+            </div>
 
-            <!-- HUD -->
             <div id="hud" class="hidden">
                 <div class="hud-left">
                     <button class="icon-btn" onclick="window.UI.toggleFullscreen()" title="На весь экран">⛶</button>
-                    <button class="icon-btn" onclick="window.UI.toggleLayout()" title="Повернуть экран">🔄</button>
-                    <button class="icon-btn" onclick="window.UI.toggleTerminal()" title="Терминал">💻</button>
-                    <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div> <span id="health-val">100%</span></div>
+                    <button class="icon-btn" onclick="window.UI.toggleTerminal()" title="Логи">☰</button>
+                    <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div></div>
                 </div>
-                
                 <div class="hud-right">
-                    <div class="hud-item">👤 <span id="user-name-display">GUEST</span></div>
-                    <div class="hud-item">💠 <span id="score-val">0</span></div>
+                    <div class="hud-item"><span id="user-name-display" style="font-weight:700">GUEST</span></div>
+                    <div class="hud-item" style="color:var(--neon-blue)">💠 <span id="score-val">0</span></div>
                 </div>
             </div>
 
-            <!-- START SCREEN -->
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
-                    <h1>CYBERSHIELD 3.1</h1>
-                    <h2 style="color: var(--neon-green)">ADAPTIVE SYSTEM</h2>
-                    
-                    <input type="text" id="username-input" placeholder="ИМЯ" maxlength="10"
-                           style="background: rgba(255,255,255,0.1); border: 1px solid #555; padding: 10px; color: white; font-family: inherit; margin-bottom: 10px; text-align: center; width: 200px; font-size: 1rem; border-radius: 5px; outline: none;">
-                    
+                    <h1>CYBERSHIELD</h1>
+                    <h2 style="color: var(--neon-green); letter-spacing: 3px;">CINEMA PROTOCOL</h2>
+                    <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="10"
+                           style="background: rgba(255,255,255,0.05); border: 1px solid #555; padding: 12px; color: white; font-family: inherit; margin-bottom: 25px; text-align: center; width: 240px; font-size: 1.1rem; border-radius: 4px; outline: none;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК</button>
-                    <button class="btn" style="border-color: #444; color: #aaa;" onclick="window.Stats.show()">📊 БАЗА</button>
+                    <button class="btn" style="border-color: #555; color: #aaa;" onclick="window.Stats.show()">📊 АРХИВ</button>
                 </div>
             </div>
 
-            <!-- STATS SCREEN -->
             <div id="stats-screen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h1>АРХИВ</h1>
+                    <h1>БАЗА ДАННЫХ</h1>
                     <div id="admin-panel">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.7rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                             <span id="connection-status">...</span>
-                            <span>ВСЕГО: <b id="stat-total">0</b></span>
+                            <span>ЗАПИСЕЙ: <b id="stat-total">0</b></span>
                         </div>
-                        <table id="stats-table">
-                            <thead><tr><th>DATE</th><th>USR</th><th>SCR</th><th>STS</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
+                        <table id="stats-table"><thead><tr><th>ВРЕМЯ</th><th>АГЕНТ</th><th>СЧЕТ</th><th>ИТОГ</th></tr></thead><tbody></tbody></table>
                     </div>
-                    <div style="margin-top: 10px;">
+                    <div style="margin-top: 20px;">
                         <button class="btn" onclick="window.Stats.hide()">НАЗАД</button>
                         <button class="btn btn-danger" onclick="window.Stats.clearLocal()">СБРОС</button>
                     </div>
                 </div>
             </div>
 
-            <!-- GAME SCREENS -->
             <div id="edu-screen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h1 style="color: #ffcc00">⚠ УГРОЗА</h1>
+                    <h1 style="color: #ffcc00; font-size: 2rem;">⚠ ОБНАРУЖЕНИЕ</h1>
                     <div class="info-card">
-                        <div class="info-title" style="color:var(--neon-blue); margin-bottom:5px; font-weight:bold;" id="edu-title">ТИП</div>
+                        <div class="info-title" style="color:var(--neon-blue); margin-bottom:10px; font-weight:bold; font-size: 1.2rem;" id="edu-title">ТИП</div>
                         <div id="edu-text">...</div>
                     </div>
-                    <button class="btn" onclick="window.Game.nextStep()">ПОНЯЛ</button>
+                    <button class="btn" onclick="window.Game.nextStep()">ПРИНЯТО</button>
                 </div>
             </div>
 
             <div id="choice-screen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h1 id="choice-header">ЗАПРОС</h1>
-                    <p id="choice-desc" style="margin-bottom: 15px; padding: 0 10px; font-size: 0.9rem;">...</p>
-                    <div id="choice-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; width: 100%;"></div>
+                    <h1 id="choice-header">ДЕЙСТВИЕ</h1>
+                    <p id="choice-desc" style="margin-bottom: 30px; font-size: 1.1rem; color: #ddd;">...</p>
+                    <div id="choice-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;"></div>
                 </div>
             </div>
 
             <div id="feedback-screen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h1 id="fb-header">ИТОГ</h1>
-                    <p id="fb-desc" style="max-width: 500px; margin-bottom: 15px; padding: 0 10px; font-size: 0.9rem;">...</p>
-                    <button class="btn" onclick="window.Game.resolveLevel()">ДАЛЕЕ</button>
+                    <h1 id="fb-header">РЕЗУЛЬТАТ</h1>
+                    <p id="fb-desc" style="max-width: 600px; margin-bottom: 30px; font-size: 1.1rem;">...</p>
+                    <button class="btn" onclick="window.Game.resolveLevel()">ПРОДОЛЖИТЬ</button>
                 </div>
             </div>
 
             <div id="end-screen" class="overlay hidden">
                 <div class="overlay-content">
-                    <h1 id="end-title">КОНЕЦ</h1>
-                    <h2 id="end-score" style="font-size: 2rem; color: white;">0</h2>
-                    <button class="btn" onclick="location.reload()">МЕНЮ</button>
+                    <h1 id="end-title">КОНЕЦ СВЯЗИ</h1>
+                    <h2 id="end-score" style="font-size: 3rem; color: white;">0</h2>
+                    <button class="btn" onclick="location.reload()">ГЛАВНОЕ МЕНЮ</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBAKN2b8ZsWpbnTPdgOKIoG_moCAZdR6mc",
-            authDomain: "cybershield-b4422.firebaseapp.com",
-            projectId: "cybershield-b4422",
-            storageBucket: "cybershield-b4422.firebasestorage.app",
-            messagingSenderId: "1048501198341",
-            appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c",
-            measurementId: "G-68L6Z80PX5"
-        };
-
-        let db = null;
-        let isCloudActive = false;
-
-        try {
-            if (firebaseConfig.apiKey) {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                isCloudActive = true;
-                logToTerminal("Google Cloud: CONNECTED", "cloud");
-            }
-        } catch (e) { console.error(e); }
+        const firebaseConfig = { apiKey: "AIzaSyBAKN2b8ZsWpbnTPdgOKIoG_moCAZdR6mc", authDomain: "cybershield-b4422.firebaseapp.com", projectId: "cybershield-b4422", storageBucket: "cybershield-b4422.firebasestorage.app", messagingSenderId: "1048501198341", appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c", measurementId: "G-68L6Z80PX5" };
+        let db = null; let isCloudActive = false;
+        try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
         window.Stats = {
-            localKey: 'CYBERSHIELD_LOCAL_V4',
+            localKey: 'CYBERSHIELD_LOCAL_V5',
             async save(record) {
                 const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
                 localData.push(record);
                 localStorage.setItem(this.localKey, JSON.stringify(localData));
                 if (isCloudActive && db) {
-                    try {
-                        logToTerminal("Sync Cloud...", "cloud");
-                        await addDoc(collection(db, "mission_results"), { ...record, timestamp: Timestamp.now() });
-                        logToTerminal("Saved to DB", "success");
-                    } catch (e) { logToTerminal("Cloud Error", "warn"); }
+                    try { logToTerminal("Синхронизация...", "cloud"); await addDoc(collection(db, "mission_results"), { ...record, timestamp: Timestamp.now() }); logToTerminal("Данные сохранены", "success"); } catch (e) { logToTerminal("Ошибка Cloud", "warn"); }
                 }
             },
             async show() {
+                window.Sound.play('click');
                 window.Game.hideAllOverlays();
                 document.getElementById('stats-screen').classList.remove('hidden');
                 const statusEl = document.getElementById('connection-status');
                 const tbody = document.querySelector('#stats-table tbody');
-                tbody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4">Загрузка данных...</td></tr>';
                 let data = [];
-
                 if (isCloudActive && db) {
-                    try {
-                        statusEl.innerHTML = '🟢 ON'; statusEl.style.color = 'var(--neon-green)';
-                        const q = query(collection(db, "mission_results"), orderBy("timestamp", "desc"), limit(20));
-                        const snapshot = await getDocs(q);
-                        snapshot.forEach((doc) => data.push(doc.data()));
-                    } catch (e) { statusEl.innerText = '🔴 ERR'; }
-                } else { statusEl.innerText = '🟡 LOC'; }
-
-                if (data.length === 0) {
-                    data = JSON.parse(localStorage.getItem(this.localKey)) || [];
-                    data.reverse();
-                }
+                    try { statusEl.innerHTML = '🟢 ONLINE'; statusEl.style.color = 'var(--neon-green)'; const q = query(collection(db, "mission_results"), orderBy("timestamp", "desc"), limit(20)); const snapshot = await getDocs(q); snapshot.forEach((doc) => data.push(doc.data())); } catch (e) { statusEl.innerText = '🔴 ERROR'; }
+                } else { statusEl.innerText = '🟡 LOCAL'; }
+                if (data.length === 0) { data = JSON.parse(localStorage.getItem(this.localKey)) || []; data.reverse(); }
                 this.renderTable(data);
             },
             renderTable(data) {
-                const tbody = document.querySelector('#stats-table tbody');
-                tbody.innerHTML = '';
+                const tbody = document.querySelector('#stats-table tbody'); tbody.innerHTML = '';
                 document.getElementById('stat-total').innerText = data.length;
-                data.forEach(rec => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${rec.date}</td><td style="font-weight:bold; max-width: 60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rec.user}</td><td>${rec.score}</td><td class="${rec.status === 'WIN' ? 'status-win' : 'status-fail'}">${rec.status === 'WIN' ? 'OK' : 'FAIL'}</td>`;
-                    tbody.appendChild(tr);
-                });
+                data.forEach(rec => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${rec.date}</td><td style="font-weight:bold; color:white;">${rec.user}</td><td>${rec.score}</td><td class="${rec.status === 'WIN' ? 'status-win' : 'status-fail'}">${rec.status === 'WIN' ? 'OK' : 'FAIL'}</td>`; tbody.appendChild(tr); });
             },
-            hide() { document.getElementById('stats-screen').classList.add('hidden'); document.getElementById('start-screen').classList.remove('hidden'); },
-            clearLocal() { if(confirm('Clear cache?')) { localStorage.removeItem(this.localKey); this.show(); } }
+            hide() { window.Sound.play('click'); document.getElementById('stats-screen').classList.add('hidden'); document.getElementById('start-screen').classList.remove('hidden'); },
+            clearLocal() { window.Sound.play('click'); if(confirm('Удалить локальную историю?')) { localStorage.removeItem(this.localKey); this.show(); } }
         };
 
         function logToTerminal(msg, type) {
             const container = document.getElementById('system-logs');
-            if(container) {
-                const d = document.createElement('div');
-                d.className = `log-entry log-${type}`;
-                d.innerText = `> ${msg}`;
-                container.prepend(d);
-            }
+            if(container) { const d = document.createElement('div'); d.className = `log-entry log-${type}`; d.innerText = `> ${msg}`; container.prepend(d); }
         }
     </script>
 
     <script>
+        // --- ГЕНЕРАТОР ЗВУКА ---
+        window.Sound = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            play(type) {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                const now = this.ctx.currentTime;
+                
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(880, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                }
+            }
+        };
+
         // УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ
         window.UI = {
-            layoutMode: 0, // 0=Auto, 1=Portrait, 2=Landscape
-            
             toggleTerminal() {
+                window.Sound.play('click');
                 const term = document.getElementById('system-logs');
                 term.classList.toggle('collapsed');
             },
-            
             toggleFullscreen() {
+                window.Sound.play('click');
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(err => console.log(err));
                 } else {
                     if (document.exitFullscreen) document.exitFullscreen();
                 }
-            },
-
-            toggleLayout() {
-                this.layoutMode = (this.layoutMode + 1) % 3;
-                const body = document.body;
-                
-                // Сброс
-                body.classList.remove('layout-portrait', 'layout-landscape');
-                
-                let msg = "Режим: АВТО";
-                if (this.layoutMode === 1) {
-                    body.classList.add('layout-portrait');
-                    msg = "Режим: ВЕРТИКАЛЬНО";
-                } else if (this.layoutMode === 2) {
-                    body.classList.add('layout-landscape');
-                    msg = "Режим: ГОРИЗОНТАЛЬНО";
-                }
-                
-                this.showToast(msg);
-            },
-            
-            showToast(text) {
-                const t = document.getElementById('toast');
-                t.innerText = text;
-                t.style.opacity = '1';
-                clearTimeout(this.toastTimer);
-                this.toastTimer = setTimeout(() => t.style.opacity = '0', 2000);
             }
         };
-        
-        // Авто-свертывание терминала на старте для мобильных
-        if(window.innerWidth < 800) {
-            document.getElementById('system-logs').classList.add('collapsed');
-        }
 
         // СЦЕНАРИИ
         const SCENARIOS = [
-            { id: "intro", type: "video", src: "intro.mp4", simText: "ЗАГРУЗКА...", log: "Инициализация..." },
-            { id: "l1_theory", type: "education", title: "ФИШИНГ", text: "Мошенники пытаются украсть пароли через поддельные сайты или письма.", log: "Анализ трафика: Email." },
-            { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ПИСЬМО...", log: "Входящее сообщение." },
-            { id: "l1_choice", type: "choice", header: "ССЫЛКА", desc: "Вам пришло письмо: 'Вы выиграли приз! Нажмите, чтобы забрать'.", options: [
-                { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно. Фишинговая атака отражена.", score: 500 },
-                { text: "🎁 ОТКРЫТЬ", correct: false, feedback: "Ошибка! Загружен вредоносный код.", score: 0, damage: 30 }
+            { id: "intro", type: "video", src: "intro.mp4", simText: "ИНИЦИАЛИЗАЦИЯ...", log: "Запуск протокола защиты..." },
+            { id: "l1_theory", type: "education", title: "ФИШИНГ", text: "Метод обмана пользователей для кражи конфиденциальных данных. Часто маскируется под официальные запросы.", log: "Обнаружен подозрительный трафик." },
+            { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ВХОДЯЩЕЕ...", log: "Получено зашифрованное сообщение." },
+            { id: "l1_choice", type: "choice", header: "ПОДОЗРИТЕЛЬНАЯ ССЫЛКА", desc: "Пришло письмо от 'Администратора': 'Срочно смените пароль по ссылке ниже'.", options: [
+                { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно. Ссылка вела на поддельный сайт.", score: 500 },
+                { text: "🔗 ПЕРЕЙТИ", correct: false, feedback: "Ошибка! Данные перехвачены хакерами.", score: 0, damage: 35 }
             ]},
-            { id: "l2_virus", type: "video", src: "virus_map.mp4", simText: "АТАКА...", log: "ВНИМАНИЕ: Вирус." },
-            { id: "l2_choice", type: "choice", header: "ВЫКУП", desc: "Файлы зашифрованы. Хакер требует деньги за ключ.", options: [
-                { text: "💸 ПЛАТИТЬ", correct: false, feedback: "Провал. Деньги потеряны, файлы не вернули.", score: 0, damage: 100 },
-                { text: "🔧 БЭКАП", correct: true, feedback: "Успех! Система восстановлена из копии.", score: 1000 }
+            { id: "l2_virus", type: "video", src: "virus_map.mp4", simText: "АТАКА...", log: "ВНИМАНИЕ: Вирусная активность." },
+            { id: "l2_choice", type: "choice", header: "ШИФРОВАЛЬЩИК", desc: "Экран заблокирован. Злоумышленник требует выкуп в криптовалюте.", options: [
+                { text: "💸 ЗАПЛАТИТЬ", correct: false, feedback: "Ошибка. Файлы не расшифрованы, деньги потеряны.", score: 0, damage: 100 },
+                { text: "🔧 ВОССТАНОВИТЬ", correct: true, feedback: "Успех! Система восстановлена из резервной копии.", score: 1000 }
             ]},
-             { id: "win", type: "video", src: "win.mp4", simText: "ПОБЕДА", log: "Система очищена." }
+             { id: "win", type: "video", src: "win.mp4", simText: "УГРОЗА УСТРАНЕНА", log: "Система очищена." }
         ];
 
         window.Game = {
             state: { stepIndex: 0, score: 0, health: 100, user: "GUEST" },
             init() {
+                // АКТИВАЦИЯ ЗВУКА ПРИ СТАРТЕ
+                window.Sound.play('click');
+                
                 const name = document.getElementById('username-input').value.trim();
                 if(name) this.state.user = name;
                 document.getElementById('user-name-display').innerText = this.state.user;
                 this.toggleScreen('start-screen', false);
                 document.getElementById('hud').classList.remove('hidden');
-                
-                // На маленьких экранах (ландшафт) терминал лучше скрыть
-                if(window.innerHeight < 500) {
-                    document.getElementById('system-logs').classList.add('collapsed');
-                }
                 
                 this.runStep();
             },
@@ -552,14 +485,28 @@
                 const sim = document.getElementById('sim-layer');
                 v.style.display = 'block'; sim.style.display = 'none';
                 v.src = s.src;
-                v.play().catch((e) => { 
-                    v.style.display='none'; 
-                    sim.style.display='flex'; 
-                    document.getElementById('sim-text').innerText=s.simText; 
-                    setTimeout(()=>this.nextStep(),2500); 
-                });
+                v.muted = false; 
+                v.volume = 1.0; 
+                
+                const promise = v.play();
+                if (promise !== undefined) {
+                    promise.catch(error => {
+                        console.log("Video auto-play blocked. Switch to SIM mode.");
+                        v.style.display='none'; 
+                        sim.style.display='flex'; 
+                        document.getElementById('sim-text').innerText=s.simText; 
+                        setTimeout(()=>this.nextStep(), 3500); 
+                    });
+                }
+                
                 v.onended = () => this.nextStep();
-                v.onerror = () => v.onended();
+                v.onerror = () => {
+                    console.log("Video missing.");
+                    v.style.display='none';
+                    sim.style.display='flex';
+                    document.getElementById('sim-text').innerText=s.simText; 
+                    setTimeout(()=>this.nextStep(), 3500);
+                };
             },
             showEdu(s) {
                 this.hideAllOverlays();
@@ -583,23 +530,26 @@
                 document.getElementById('choice-screen').classList.remove('hidden');
             },
             handleChoice(opt) {
+                window.Sound.play(opt.correct ? 'success' : 'error');
                 this.log(`Решение: ${opt.text}`, opt.correct ? 'success' : 'warn');
                 if(opt.score) this.state.score += opt.score;
                 if(opt.damage) this.updateHealth(-opt.damage);
                 document.getElementById('score-val').innerText = this.state.score;
-                document.getElementById('fb-header').innerText = opt.correct ? "УСПЕХ" : "ОШИБКА";
+                document.getElementById('fb-header').innerText = opt.correct ? "УСПЕХ" : "ПРОВАЛ";
                 document.getElementById('fb-header').style.color = opt.correct ? "var(--neon-green)" : "var(--neon-red)";
                 document.getElementById('fb-desc').innerText = opt.feedback;
                 this.toggleScreen('choice-screen', false);
                 document.getElementById('feedback-screen').classList.remove('hidden');
-                if (this.state.health <= 0) setTimeout(() => this.finish(false), 1500);
+                if (this.state.health <= 0) setTimeout(() => this.finish(false), 2000);
             },
-            resolveLevel() { this.state.health > 0 ? this.nextStep() : this.finish(false); },
+            resolveLevel() { window.Sound.play('click'); this.state.health > 0 ? this.nextStep() : this.finish(false); },
             nextStep() { this.state.stepIndex++; this.runStep(); },
             updateHealth(v) {
                 this.state.health = Math.max(0, this.state.health + v);
                 document.getElementById('health-bar-fill').style.width = this.state.health + "%";
-                document.getElementById('health-val').innerText = this.state.health + "%";
+                const fill = document.getElementById('health-bar-fill');
+                if(this.state.health < 30) fill.style.background = 'var(--neon-red)';
+                else fill.style.background = 'var(--neon-green)';
             },
             log(msg, type='info') {
                 const logs = document.getElementById('system-logs');
@@ -609,12 +559,13 @@
                 logs.prepend(d);
             },
             finish(isWin) {
+                window.Sound.play(isWin ? 'success' : 'error');
                 this.hideAllOverlays();
                 const scr = document.getElementById('end-screen');
                 scr.classList.remove('hidden');
-                document.getElementById('end-title').innerText = isWin ? "ПОБЕДА" : "ПРОВАЛ";
+                document.getElementById('end-title').innerText = isWin ? "МИССИЯ ВЫПОЛНЕНА" : "КРИТИЧЕСКИЙ СБОЙ";
                 document.getElementById('end-title').style.color = isWin ? "var(--neon-green)" : "var(--neon-red)";
-                document.getElementById('end-score').innerText = `СЧЕТ: ${this.state.score}`;
+                document.getElementById('end-score').innerText = `${this.state.score}`;
                 if(window.Stats) window.Stats.save({
                     date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                     user: this.state.user,
