@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Master Edition</title>
+    <title>Миссия: Киберщит | Rescue Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -44,8 +44,7 @@
         video { 
             width: 100%; height: 100%; object-fit: cover; 
             display: none; opacity: 0; transition: opacity 0.5s ease;
-            background: #000; will-change: transform, opacity;
-            transform: translateZ(0); /* Активация GPU смартфона */
+            background: #000; transform: translateZ(0); -webkit-transform: translateZ(0);
         }
         video.playing { opacity: 1; display: block; }
 
@@ -70,9 +69,9 @@
         @keyframes radar-spin { 0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);} }
 
         #sim-text {
-            font-family: 'Share Tech Mono', monospace; font-size: 1rem;
+            font-family: 'Share Tech Mono', monospace; font-size: 1.1rem;
             letter-spacing: 3px; color: var(--neon-blue); text-align: center;
-            animation: pulse 2s infinite alternate;
+            animation: pulse 2s infinite alternate; padding: 0 20px;
         }
         @keyframes pulse { 0% {opacity: 0.4;} 100% {opacity: 1;} }
 
@@ -81,18 +80,19 @@
             display: flex; justify-content: space-between; z-index: 500;
             pointer-events: none; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
         }
-        .hud-left, .hud-right { display: flex; gap: 10px; pointer-events: auto; align-items: center; }
+        .hud-left, .hud-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
         .hud-item {
             background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-            padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(8px); color: #ddd; font-size: 0.75rem;
+            padding: 8px 14px; border-radius: 30px; backdrop-filter: blur(8px); color: #ddd; font-size: 0.8rem;
         }
         .icon-btn {
             background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff;
-            cursor: pointer; font-size: 1.2rem; width: 42px; height: 42px;
-            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            cursor: pointer; font-size: 1.4rem; width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s;
         }
+        .icon-btn:active { transform: scale(0.9); background: var(--neon-blue); color: black; }
 
-        #health-bar-container { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        #health-bar-container { width: 70px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; }
 
         .overlay {
@@ -102,32 +102,32 @@
         }
         .hidden { opacity: 0; pointer-events: none; }
         
-        h1 { font-size: clamp(1.6rem, 5vw, 2.2rem); text-transform: uppercase; margin-bottom: 8px; text-shadow: 0 0 15px var(--neon-blue); }
+        h1 { font-size: clamp(1.8rem, 5vw, 2.5rem); text-transform: uppercase; margin-bottom: 10px; text-shadow: 0 0 15px var(--neon-blue); }
         .btn {
             background: linear-gradient(90deg, rgba(0,243,255,0.15), transparent);
             color: var(--neon-blue); border: 1px solid var(--neon-blue); border-left: 4px solid var(--neon-blue);
-            padding: 14px 28px; font-family: inherit; font-weight: 700; cursor: pointer;
-            margin: 8px; border-radius: 4px; text-transform: uppercase; min-width: 200px;
+            padding: 16px 32px; font-family: inherit; font-weight: 700; cursor: pointer;
+            margin: 10px; border-radius: 4px; text-transform: uppercase; min-width: 220px;
         }
-        .btn:active { transform: scale(0.95); background: var(--neon-blue); color: black; }
 
-        @media (orientation: portrait) {
-            #side-menu { bottom: 0; left: 0; right: 0; height: 35vh; border-top: 2px solid var(--neon-blue); transform: translateY(105%); }
-            #side-menu:not(.collapsed) { transform: translateY(0); }
-        }
-        @media (orientation: landscape) {
-            #side-menu { top: 0; left: 0; bottom: 0; width: 300px; border-right: 2px solid var(--neon-blue); transform: translateX(-105%); }
-            #side-menu:not(.collapsed) { transform: translateX(0); }
-        }
-        
         #side-menu {
             position: absolute; background: rgba(5, 8, 15, 0.98); padding: 20px; 
             z-index: 1000; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             font-family: 'Share Tech Mono', monospace; color: var(--neon-blue); overflow-y: auto;
         }
+        @media (orientation: portrait) {
+            #side-menu { bottom: 0; left: 0; right: 0; height: 35vh; border-top: 2px solid var(--neon-blue); transform: translateY(105%); }
+            #side-menu:not(.collapsed) { transform: translateY(0); }
+        }
+        @media (orientation: landscape) {
+            #side-menu { top: 0; left: 0; bottom: 0; width: 320px; border-right: 2px solid var(--neon-blue); transform: translateX(-105%); }
+            #side-menu:not(.collapsed) { transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
+
+    <div id="toast" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--neon-blue); color:black; padding:10px 20px; border-radius:20px; font-weight:bold; z-index:5000; opacity:0; transition:0.3s; pointer-events:none; text-transform:uppercase;"></div>
 
     <div id="main-wrapper">
         <div id="click-trap" onclick="window.UI.toggleLogs()"></div>
@@ -143,7 +143,7 @@
 
             <div id="hud" class="hidden">
                 <div class="hud-left">
-                    <button class="icon-btn" onclick="window.UI.toggleFS()">⛶</button>
+                    <button class="icon-btn" id="btn-fullscreen" onclick="window.UI.toggleFullscreen()">⛶</button>
                     <button class="icon-btn" onclick="window.UI.toggleLogs()">☰</button>
                     <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div></div>
                 </div>
@@ -156,16 +156,16 @@
             <!-- SCREENS -->
             <div id="scr-start" class="overlay">
                 <h1>CYBERSHIELD</h1>
-                <h2 style="color:var(--neon-blue); font-size: 0.8rem; margin-bottom: 25px; letter-spacing: 5px;">DIAMOND EDITION</h2>
-                <input type="text" id="name-in" placeholder="ИМЯ АГЕНТА" maxlength="12" style="background:rgba(255,255,255,0.05); border:1px solid #444; color:white; padding:12px; text-align:center; margin-bottom:20px; width:240px; font-family:inherit; border-radius:5px;">
+                <h2 style="color:var(--neon-blue); font-size: 0.8rem; margin-bottom: 30px; letter-spacing: 5px;">DIAMOND EDITION</h2>
+                <input type="text" id="name-in" placeholder="ИМЯ АГЕНТА" maxlength="12" style="background:rgba(255,255,255,0.05); border:1px solid #444; color:white; padding:15px; text-align:center; margin-bottom:20px; width:260px; font-family:inherit; border-radius:5px; outline:none;">
                 <button class="btn" onclick="window.Game.start()">🚀 ЗАПУСК СИСТЕМЫ</button>
                 <button class="btn" style="border-color:#444; color:#888;" onclick="window.Stats.show()">📊 АРХИВ</button>
             </div>
 
             <div id="scr-edu" class="overlay hidden">
                 <h1 style="color:#ffcc00">⚠ УГРОЗА</h1>
-                <div style="background:rgba(255,255,255,0.05); padding:15px; border-left:4px solid var(--neon-blue); text-align:left; max-width:500px; margin-bottom:20px; font-size: 0.9rem;">
-                    <b id="edu-t" style="color:var(--neon-blue); font-size: 1.1rem;"></b><br><br>
+                <div style="background:rgba(255,255,255,0.05); padding:20px; border-left:4px solid var(--neon-blue); text-align:left; max-width:500px; margin-bottom:20px;">
+                    <b id="edu-t" style="color:var(--neon-blue); font-size:1.2rem;"></b><br><br>
                     <span id="edu-d"></span>
                 </div>
                 <button class="btn" onclick="window.Game.closeEdu()">ПРИНЯТО</button>
@@ -173,20 +173,20 @@
 
             <div id="scr-choice" class="overlay hidden">
                 <h1 id="ch-t">ДЕЙСТВИЕ</h1>
-                <p id="ch-d" style="margin-bottom:25px; max-width:600px;"></p>
-                <div id="ch-btns" style="display:flex; flex-wrap:wrap; justify-content:center; gap:12px;"></div>
+                <p id="ch-d" style="margin-bottom:30px; max-width:600px; font-size:1.1rem;"></p>
+                <div id="ch-btns" style="display:flex; flex-wrap:wrap; justify-content:center; gap:15px;"></div>
             </div>
 
             <div id="scr-fb" class="overlay hidden">
                 <h1 id="fb-t"></h1>
-                <p id="fb-d" style="margin-bottom:25px; max-width:600px;"></p>
+                <p id="fb-d" style="margin-bottom:30px; max-width:600px; font-size:1.1rem;"></p>
                 <button class="btn" onclick="window.Game.next()">ПРОДОЛЖИТЬ</button>
             </div>
 
             <div id="scr-stats" class="overlay hidden">
                 <h1>АРХИВ МИССИЙ</h1>
-                <div style="width:100%; max-width:600px; max-height:50vh; overflow-y:auto; background:rgba(0,0,0,0.4); border:1px solid #333; margin:15px 0;">
-                    <table style="width:100%; border-collapse:collapse; font-family:'Share Tech Mono'; font-size:0.8rem;">
+                <div style="width:100%; max-width:600px; max-height:50vh; overflow-y:auto; background:rgba(0,0,0,0.4); border:1px solid #333; margin:20px 0;">
+                    <table style="width:100%; border-collapse:collapse; font-family:'Share Tech Mono'; font-size:0.85rem;">
                         <tbody id="stats-body"></tbody>
                     </table>
                 </div>
@@ -195,7 +195,7 @@
 
             <div id="scr-end" class="overlay hidden">
                 <h1 id="end-t"></h1>
-                <h2 id="end-s" style="font-size:4rem; margin:15px 0; text-shadow: 0 0 20px var(--neon-blue);">0</h2>
+                <h2 id="end-s" style="font-size:5rem; margin:20px 0; text-shadow:0 0 30px var(--neon-blue);">0</h2>
                 <button class="btn" onclick="location.reload()">ГЛАВНОЕ МЕНЮ</button>
             </div>
         </div>
@@ -209,19 +209,14 @@
         
         const cfg = { apiKey: "AIzaSyBAKN2b8ZsWpbnTPdgOKIoG_moCAZdR6mc", authDomain: "cybershield-b4422.firebaseapp.com", projectId: "cybershield-b4422", storageBucket: "cybershield-b4422.firebasestorage.app", messagingSenderId: "1048501198341", appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c" };
         
-        let db = null;
-        let auth = null;
+        let db = null; let auth = null;
 
         const initDB = async () => {
             try {
-                const app = initializeApp(cfg);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                await signInAnonymously(auth); // MANDATORY FIX
-                window.UI.log("Облако: Подключено", "ok");
-            } catch(e) {
-                window.UI.log("Облако: Оффлайн режим", "warn");
-            }
+                const app = initializeApp(cfg); db = getFirestore(app); auth = getAuth(app);
+                await signInAnonymously(auth);
+                window.UI.log("Облако: Онлайн", "ok");
+            } catch(e) { window.UI.log("Облако: Оффлайн", "warn"); }
         };
         initDB();
 
@@ -232,11 +227,11 @@
                     try {
                         const path = collection(db, 'artifacts', 'cybershield-3-1', 'public', 'data', 'mission_results');
                         await addDoc(path, { ...r, ts: Timestamp.now(), uid: auth.currentUser.uid });
-                    } catch(e) { console.error("Save error", e); }
+                    } catch(e) {}
                 }
             },
             async show() {
-                const b = document.getElementById('stats-body'); b.innerHTML = 'Загрузка...';
+                const b = document.getElementById('stats-body'); b.innerHTML = 'Загрузка данных...';
                 document.getElementById('scr-stats').classList.remove('hidden');
                 let data = [];
                 if(db) {
@@ -246,14 +241,14 @@
                     } catch(e) {}
                 }
                 if(!data.length) data = (JSON.parse(localStorage.getItem('CS_31')) || []).reverse();
-                b.innerHTML = data.map(r => `<tr style="border-bottom:1px solid #222"><td style="padding:10px">${r.user}</td><td style="color:var(--neon-blue); text-align:center;">${r.score}</td><td style="text-align:right">${r.status}</td></tr>`).join('') || 'Нет данных';
+                b.innerHTML = data.map(r => `<tr style="border-bottom:1px solid #222"><td style="padding:12px">${r.user}</td><td style="color:var(--neon-blue); text-align:center;">${r.score}</td><td style="text-align:right">${r.status}</td></tr>`).join('') || 'Нет записей';
             },
             hide() { document.getElementById('scr-stats').classList.add('hidden'); }
         };
     </script>
 
     <script>
-        // --- AUDIO ENGINE (SYNTH) ---
+        // --- AUDIO ---
         window.Sound = {
             ctx: null,
             play(type) {
@@ -263,31 +258,38 @@
                 const osc = this.ctx.createOscillator();
                 const g = this.ctx.createGain();
                 osc.connect(g); g.connect(this.ctx.destination);
-                
-                if(type === 'success') {
-                    osc.frequency.setValueAtTime(523, now);
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
-                    g.gain.setValueAtTime(0.1, now);
-                    g.gain.linearRampToValueAtTime(0, now + 0.3);
-                } else if(type === 'error') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(110, now);
-                    g.gain.setValueAtTime(0.1, now);
-                    g.gain.linearRampToValueAtTime(0, now + 0.4);
-                } else {
-                    osc.frequency.setValueAtTime(800, now);
-                    g.gain.setValueAtTime(0.05, now);
-                    g.gain.linearRampToValueAtTime(0, now + 0.1);
-                }
-                osc.start(); osc.stop(now + 0.5);
+                if(type === 'success') { osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(880, now+0.3); g.gain.setValueAtTime(0.1, now); }
+                else if(type === 'error') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110, now); g.gain.setValueAtTime(0.1, now); }
+                else { osc.frequency.setValueAtTime(800, now); g.gain.setValueAtTime(0.05, now); }
+                osc.start(); osc.stop(now+0.4);
             }
         };
 
         window.UI = {
+            toast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 3000); },
             toggleLogs() { window.Sound.play('click'); document.getElementById('side-menu').classList.toggle('collapsed'); document.getElementById('click-trap').classList.toggle('active'); },
-            toggleFS() {
-                if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-                else document.exitFullscreen();
+            toggleFullscreen() {
+                window.Sound.play('click');
+                const btn = document.getElementById('btn-fullscreen');
+                const isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+                if (!isFs) {
+                    const el = document.documentElement;
+                    const request = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+                    if (request) {
+                        request.call(el).then(() => {
+                            this.toast("РЕЖИМ КИНОТАТРА: ПОВЕРНИТЕ ТЕЛЕФОН");
+                        }).catch(e => console.log("FS error", e));
+                    }
+                } else {
+                    const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+                    if (exit) exit.call(document);
+                }
+            },
+            syncIcon() {
+                const btn = document.getElementById('btn-fullscreen');
+                const isFs = document.fullscreenElement || document.webkitFullscreenElement;
+                btn.innerHTML = isFs ? "&#10539;" : "&#9974;";
             },
             log(m, type="info") {
                 const el = document.getElementById('side-menu');
@@ -297,20 +299,23 @@
             }
         };
 
+        document.addEventListener('fullscreenchange', () => window.UI.syncIcon());
+        document.addEventListener('webkitfullscreenchange', () => window.UI.syncIcon());
+
         const STEPS = [
-            { type: 'video', src: 'intro.mp4', sim: 'СВЯЗЬ УСТАНОВЛЕНА...', log: 'Запуск протокола...' },
-            { type: 'video', src: 'ai_scan.mp4', sim: 'СКАНИРОВАНИЕ...', log: 'Анализ системы...' },
-            { type: 'edu', t: 'ФИШИНГ', d: 'Попытка обмана с целью кражи паролей. Хакеры создают поддельные сайты и письма.', log: 'Угроза: Социальная инженерия' },
-            { type: 'video', src: 'phishing.mp4', sim: 'ВХОДЯЩЕЕ СООБЩЕНИЕ...', log: 'Получен анонимный запрос' },
-            { type: 'choice', t: 'СРОЧНОЕ ПИСЬМО', d: 'Письмо: "Ваш аккаунт будет удален через 5 минут! Нажмите на ссылку для подтверждения".', opts: [
-                { t: '🛡️ УДАЛИТЬ', ok: true, f: 'Верно. Это типичный метод запугивания.', s: 500 },
-                { t: '🔗 ПЕРЕЙТИ', ok: false, f: 'Ошибка. Ваши данные были скомпрометированы.', d: 40 }
+            { type: 'video', src: 'intro.mp4', sim: 'СВЯЗЬ УСТАНОВЛЕНА...', log: 'Запуск системы...' },
+            { type: 'video', src: 'ai_scan.mp4', sim: 'СКАНИРОВАНИЕ...', log: 'Анализ уязвимостей...' },
+            { type: 'edu', t: 'ФИШИНГ', d: 'Попытка кражи паролей через поддельные сайты. Никогда не вводите данные на незнакомых ресурсах.', log: 'Угроза: Социальная инженерия' },
+            { type: 'video', src: 'phishing.mp4', sim: 'ВХОДЯЩЕЕ СООБЩЕНИЕ...', log: 'Обнаружен фишинговый запрос' },
+            { type: 'choice', t: 'СРОЧНОЕ ПИСЬМО', d: 'Письмо: "Ваш аккаунт взломан! Нажмите на ссылку для подтверждения". Что сделаете?', opts: [
+                { t: '🛡️ УДАЛИТЬ', ok: true, f: 'Верно! Это попытка захвата аккаунта.', s: 500 },
+                { t: '🔗 ПЕРЕЙТИ', ok: false, f: 'Ошибка. Хакер перехватил ваш пароль.', d: 40 }
             ]},
             { type: 'video', src: 'virus_map.mp4', sim: 'ТРЕВОГА: ВИРУС...', log: 'Обнаружен сетевой червь' },
             { type: 'video', src: 'glitch.mp4', sim: 'ВЗЛОМ СИСТЕМЫ...', log: 'Критическое заражение!' },
             { type: 'choice', t: 'ВЫМОГАТЕЛЬ', d: 'Все файлы зашифрованы. Хакер требует 500$ за ключ. Ваши действия?', opts: [
-                { t: '🔧 ВОССТАНОВИТЬ', ok: true, f: 'Да! Бэкап спас все данные.', s: 1000 },
-                { t: '💸 ЗАПЛАТИТЬ', ok: false, f: 'Ошибка. Шантажисты никогда не дают ключ.', d: 60 }
+                { t: '🔧 ВОССТАНОВИТЬ', ok: true, f: 'Да! Резервная копия спасла проект.', s: 1000 },
+                { t: '💸 ЗАПЛАТИТЬ', ok: false, f: 'Зря. Шантажисты обычно не присылают ключ.', d: 60 }
             ]}
         ];
 
@@ -324,7 +329,8 @@
                 document.getElementById('hud').classList.remove('hidden');
                 
                 const v = document.getElementById('video-layer');
-                v.muted = false; v.play().then(() => v.pause()).catch(() => {});
+                v.muted = false; v.volume = 1.0;
+                v.play().then(() => v.pause()).catch(() => {});
                 
                 this.run();
             },
@@ -332,7 +338,6 @@
                 if(this.idx >= STEPS.length) { this.finish(true); return; }
                 const s = STEPS[this.idx];
                 if(s.log) window.UI.log(s.log);
-                
                 if(s.type === 'video') this.playV(s);
                 else if(s.type === 'edu') this.showEdu(s);
                 else if(s.type === 'choice') this.showChoice(s);
@@ -344,17 +349,14 @@
                 document.getElementById('sim-text').innerText = s.sim;
                 
                 v.src = s.src; v.load();
-                v.playbackRate = 1.1; 
+                v.playbackRate = 1.1;
                 
                 const onPlay = () => { 
                     v.classList.add('playing'); sim.classList.add('fade-out'); 
                     v.removeEventListener('playing', onPlay); 
                 };
                 v.addEventListener('playing', onPlay);
-                
-                v.play().catch(() => { 
-                    setTimeout(() => this.next(), 4000); 
-                });
+                v.play().catch(() => { setTimeout(() => this.next(), 4000); });
                 v.onended = () => this.next();
                 v.onerror = () => this.next();
             },
@@ -379,14 +381,12 @@
                 document.getElementById('scr-choice').classList.add('hidden');
                 if(o.s) this.score += o.s;
                 if(o.d) this.hp = Math.max(0, this.hp - o.d);
-                
                 document.getElementById('u-score').innerText = this.score;
                 document.getElementById('health-bar-fill').style.width = this.hp + '%';
                 document.getElementById('fb-t').innerText = o.ok ? 'УСПЕХ' : 'ПРОВАЛ';
                 document.getElementById('fb-t').style.color = o.ok ? 'var(--neon-green)' : 'var(--neon-red)';
                 document.getElementById('fb-d').innerText = o.f;
                 document.getElementById('scr-fb').classList.remove('hidden');
-                
                 window.UI.log(o.t, o.ok ? 'ok' : 'warn');
                 if(this.hp <= 0) setTimeout(() => this.finish(false), 1500);
             },
@@ -399,7 +399,6 @@
                 const sim = document.getElementById('sim-layer');
                 v.src = win ? 'win.mp4' : 'lose.mp4'; v.load();
                 v.play().then(() => { v.classList.add('playing'); sim.classList.add('fade-out'); }).catch(() => {});
-                
                 v.onended = () => {
                     document.getElementById('end-t').innerText = win ? 'МИССИЯ ВЫПОЛНЕНА' : 'СИСТЕМА ВЗЛОМАНА';
                     document.getElementById('end-t').style.color = win ? 'var(--neon-green)' : 'var(--neon-red)';
