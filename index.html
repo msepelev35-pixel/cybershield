@@ -3,581 +3,488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Миссия: Киберщит | Ердюков Ярослав</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Миссия: Киберщит | Система защиты</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- ОСНОВНЫЕ НАСТРОЙКИ --- */
+        /* --- CSS VARIABLES & RESET --- */
         :root {
-            --neon-blue: #00d2ff;
-            --neon-green: #00ff00;
-            --neon-red: #ff3333;
-            --dark-bg: rgba(11, 16, 26, 0.95);
+            --neon-blue: #00f3ff;
+            --neon-green: #0aff0a;
+            --neon-red: #ff003c;
+            --bg-color: #050505;
+            --glass: rgba(10, 20, 30, 0.95);
         }
-
+        * { box-sizing: border-box; }
         body {
             margin: 0;
-            background: linear-gradient(-45deg, #141e30, #243b55, #000000, #1a2a6c);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 50%, #1a2a3a 0%, #000 100%);
             color: white;
             font-family: 'Orbitron', sans-serif;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* --- LAYOUT --- */
+        #main-wrapper {
+            display: flex;
+            width: 95vw;
+            height: 90vh;
+            max-width: 1400px;
+            gap: 20px;
         }
 
-        /* --- ИГРОВАЯ КОНСОЛЬ --- */
-        #game-container {
+        /* --- TERMINAL (LOGS) --- */
+        #system-logs {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333;
+            border-left: 4px solid var(--neon-blue);
+            padding: 15px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--neon-blue);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            text-shadow: 0 0 5px var(--neon-blue);
+            border-radius: 10px;
+        }
+        #system-logs::-webkit-scrollbar { width: 5px; }
+        #system-logs::-webkit-scrollbar-thumb { background: #333; }
+        
+        .log-entry { margin-bottom: 5px; opacity: 0.8; }
+        .log-warn { color: var(--neon-red); font-weight: bold; }
+        .log-success { color: var(--neon-green); }
+        .log-info { color: #fff; }
+
+        @media (max-width: 900px) {
+            #system-logs { display: none; }
+            #main-wrapper { width: 100%; height: 100%; gap: 0; }
+            #game-viewport { border: none; border-radius: 0; }
+        }
+
+        /* --- GAME VIEWPORT --- */
+        #game-viewport {
+            flex: 3;
             position: relative;
-            width: 100%;
-            height: 100%;
-            max-width: 1280px;
-            max-height: 720px;
             background: #000;
-            border: 4px solid var(--neon-blue);
+            border: 2px solid var(--neon-blue);
             border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0, 210, 255, 0.5);
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
             overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        @media (max-width: 768px) {
-            #game-container {
-                border-width: 0;
-                border-radius: 0;
-            }
+        #game-viewport::after {
+            content: " "; position: absolute; inset: 0;
+            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 255, 255, 0.05) 3px);
+            pointer-events: none; z-index: 10;
         }
 
-        /* Видео */
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
+        video { width: 100%; height: 100%; object-fit: cover; display: none; }
+
+        #sim-layer {
+            position: absolute; inset: 0; display: none;
+            flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(circle, #001a33 0%, #000 100%);
         }
-
-        /* Заглушка симуляции */
-        #simulation-placeholder {
-            width: 100%;
-            height: 100%;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle, #001a33 0%, #000000 100%);
-            color: var(--neon-blue);
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
+        .loader-ring {
+            width: 80px; height: 80px;
+            border: 5px solid transparent; border-top-color: var(--neon-blue);
+            border-radius: 50%; animation: spin 1s linear infinite;
         }
-        .sim-icon { font-size: 4rem; margin-bottom: 20px; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Эффект сетки */
-        #game-container::after {
-            content: " ";
-            display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 0, 0, 0.3) 3px);
-            z-index: 5; pointer-events: none;
+        /* HUD */
+        #hud {
+            position: absolute; top: 0; left: 0; right: 0;
+            padding: 20px; display: flex; justify-content: space-between;
+            z-index: 20; text-transform: uppercase; font-size: 1.1rem;
+            pointer-events: none;
         }
-
-        /* --- HUD --- */
-        #hud-panel {
-            position: absolute; top: 20px; left: 0; right: 0;
-            display: flex; justify-content: space-between; padding: 0 5%;
-            z-index: 20; display: none;
+        .hud-item {
+            background: rgba(0,0,0,0.7); border: 1px solid var(--neon-blue);
+            padding: 8px 16px; border-radius: 8px;
+            display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
         }
+        #health-bar-container { width: 100px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
+        #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; }
 
-        .hud-box {
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid var(--neon-blue);
-            padding: 8px 15px; border-radius: 10px;
-            box-shadow: 0 0 10px var(--neon-blue);
-            font-size: 1rem; display: flex; align-items: center; gap: 10px;
-        }
-
-        #health-track { width: 100px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; }
-        #health-fill { width: 100%; height: 100%; background: var(--neon-green); transition: width 0.5s, background 0.5s; }
-
-        /* --- ИНТЕРФЕЙСЫ --- */
+        /* OVERLAYS */
         .overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--dark-bg);
-            backdrop-filter: blur(8px);
+            position: absolute; inset: 0;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
             display: flex; flex-direction: column;
             justify-content: center; align-items: center;
-            text-align: center; z-index: 30;
-            padding: 20px; box-sizing: border-box;
-            animation: fadeIn 0.5s ease;
-            overflow-y: auto; /* Для скролла на маленьких экранах */
+            z-index: 30; text-align: center; padding: 20px;
+            transition: opacity 0.3s;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .hidden { opacity: 0; pointer-events: none; display: none !important; }
 
-        h1 { font-size: clamp(1.5rem, 5vw, 3.5rem); color: var(--neon-blue); margin: 0 0 10px 0; text-shadow: 0 0 15px var(--neon-blue); }
-        h2 { font-size: clamp(0.9rem, 3vw, 1.2rem); color: #ddd; margin-bottom: 20px; }
-
-        .author-badge {
-            border: 1px solid var(--neon-blue); padding: 10px;
-            background: rgba(0, 210, 255, 0.05); margin-bottom: 20px;
-            border-radius: 10px; font-size: 0.9rem;
-        }
-
-        /* Ввод имени */
-        .input-group { margin-bottom: 20px; text-align: left; width: 100%; max-width: 400px; }
-        .input-label { display: block; color: var(--neon-blue); margin-bottom: 5px; font-size: 0.9rem; }
-        .cyber-input {
-            width: 100%; padding: 15px; background: rgba(0,0,0,0.5);
-            border: 2px solid var(--neon-blue); color: white;
-            font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
-            border-radius: 5px; box-sizing: border-box; outline: none;
-            transition: box-shadow 0.3s;
-        }
-        .cyber-input:focus { box-shadow: 0 0 15px var(--neon-blue); }
-
-        /* Таблица лидеров */
-        .stats-panel {
-            width: 100%; max-width: 600px;
-            background: rgba(0,0,0,0.6); border: 1px solid #333;
-            border-radius: 10px; padding: 15px; margin-top: 10px;
-            max-height: 200px; overflow-y: auto;
-        }
-        .stat-row {
-            display: flex; justify-content: space-between;
-            padding: 8px 0; border-bottom: 1px solid #333; font-size: 0.85rem;
-        }
-        .stat-row:last-child { border-bottom: none; }
-        .stat-win { color: var(--neon-green); }
-        .stat-fail { color: var(--neon-red); }
-        .total-counter {
-            display: flex; gap: 20px; margin-bottom: 20px; font-size: 0.9rem; color: #aaa;
-        }
-
-        /* Кнопки и карточки */
-        .edu-card {
-            background: rgba(0, 0, 0, 0.8); border: 1px solid var(--neon-blue);
-            border-left: 5px solid var(--neon-blue); padding: 20px;
-            max-width: 700px; width: 90%; text-align: left; margin-bottom: 20px;
-            border-radius: 10px;
-        }
-        .edu-title { color: #ffcc00; font-size: 1.2rem; margin-bottom: 10px; }
-        .edu-text { font-size: 1rem; line-height: 1.5; color: #eee; }
+        h1 { color: var(--neon-blue); text-shadow: 0 0 20px var(--neon-blue); margin-bottom: 10px; font-size: 2.5rem; }
+        h2 { color: #ccc; font-size: 1.2rem; max-width: 600px; margin-bottom: 30px; }
         
-        .feedback-correct { border-left-color: var(--neon-green); }
-        .feedback-correct .edu-title { color: var(--neon-green); }
-        .feedback-wrong { border-left-color: var(--neon-red); }
-        .feedback-wrong .edu-title { color: var(--neon-red); }
-
-        .btn-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .btn {
-            background: linear-gradient(180deg, #00d2ff, #0077ff);
-            border: none; color: white; padding: 15px 30px;
-            font-size: 1.1rem; font-family: 'Orbitron', sans-serif; font-weight: bold;
-            cursor: pointer; border-radius: 50px; text-transform: uppercase;
-            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3); min-width: 180px;
+            background: transparent; color: var(--neon-blue);
+            border: 2px solid var(--neon-blue); padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
+            cursor: pointer; transition: 0.3s; text-transform: uppercase;
+            letter-spacing: 2px; margin: 10px; position: relative; overflow: hidden;
         }
-        .btn:active { transform: scale(0.95); }
-        .btn-danger { background: linear-gradient(180deg, #ff416c, #ff4b2b); box-shadow: 0 5px 15px rgba(255, 65, 108, 0.3); }
-        .btn-next { background: linear-gradient(180deg, #11998e, #38ef7d); }
+        .btn:hover { color: #000; background: var(--neon-blue); box-shadow: 0 0 30px var(--neon-blue); }
+        .btn-danger { border-color: var(--neon-red); color: var(--neon-red); }
+        .btn-danger:hover { background: var(--neon-red); box-shadow: 0 0 30px var(--neon-red); }
 
-        .hidden { display: none !important; }
-
-        /* Тревога */
-        .alert-popup {
-            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
-            background: rgba(220, 0, 0, 0.9); border: 2px solid #ff0000;
-            padding: 15px 30px; font-size: 1.5rem; color: yellow; text-align: center;
-            border-radius: 10px; display: none; z-index: 100;
-            width: 80%; animation: flashAlert 0.5s infinite alternate;
+        .info-card {
+            background: rgba(0,0,0,0.8); border-left: 4px solid var(--neon-blue);
+            padding: 20px; text-align: left; max-width: 600px; margin-bottom: 20px;
         }
-        @keyframes flashAlert { from { opacity: 0.8; } to { opacity: 1; box-shadow: 0 0 20px red; } }
+        .info-title { color: #ffcc00; font-size: 1.2rem; margin-bottom: 5px; }
 
-        /* Поворот экрана */
-        #rotate-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 999; display: none;
-            flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        /* ADMIN / STATS PANEL */
+        #admin-panel {
+            width: 80%; max-width: 800px; max-height: 80%;
+            background: rgba(0,0,0,0.9); border: 1px solid #444;
+            overflow-y: auto; text-align: left; padding: 20px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { border-bottom: 1px solid #333; padding: 10px; text-align: left; }
+        th { color: var(--neon-blue); }
+        .status-win { color: var(--neon-green); }
+        .status-fail { color: var(--neon-red); }
+
+        #rotate-device {
+            position: fixed; inset: 0; background: #000; z-index: 100;
+            display: none; justify-content: center; align-items: center; flex-direction: column;
         }
         @media screen and (orientation: portrait) and (max-width: 900px) {
-            #rotate-screen { display: flex; }
+            #rotate-device { display: flex; }
         }
     </style>
 </head>
 <body>
 
-    <audio id="sfx-click" src="click.mp3" preload="auto"></audio>
-    <audio id="sfx-alarm" src="alarm.mp3" preload="auto"></audio>
-    <audio id="sfx-win" src="win.mp3" preload="auto"></audio>
-    <audio id="sfx-wrong" src="error.mp3" preload="auto"></audio>
-
-    <div id="rotate-screen">
-        <div style="font-size: 3rem; margin-bottom: 20px;">📱➡️</div>
-        <h2 style="padding: 20px;">Пожалуйста, поверните устройство горизонтально</h2>
+    <!-- ASSETS -->
+    <audio id="sfx-hover" src="click.mp3"></audio>
+    
+    <div id="rotate-device">
+        <h1>📱 ⟳</h1>
+        <p>Для доступа к терминалу поверните устройство</p>
     </div>
 
-    <div id="game-container">
-        <video id="mainVideo" playsinline></video>
-        <div id="simulation-placeholder">
-            <div class="sim-icon">📡</div>
-            <h2 id="sim-text">ЗАГРУЗКА МОДУЛЯ...</h2>
+    <div id="main-wrapper">
+        <!-- LOGS -->
+        <div id="system-logs">
+            <div class="log-entry log-info">> Инициализация ядра системы... OK</div>
+            <div class="log-entry log-info">> Подключение к хранилищу данных... OK</div>
         </div>
 
-        <div id="hud-panel">
-            <div class="hud-box">
-                🛡️ <div id="health-track"><div id="health-fill"></div></div> 
-                <span id="health-val">100%</span>
-            </div>
-            <div class="hud-box">
-                👤 <span id="hud-name" style="margin-right: 10px; color: var(--neon-blue)">GUEST</span>
-                💎 <span id="score-val">0</span>
-            </div>
-        </div>
-        
-        <div id="alert-popup" class="alert-popup">⚠️ ВНИМАНИЕ! УГРОЗА!</div>
-
-        <!-- 1. СТАРТОВЫЙ ЭКРАН С РЕГИСТРАЦИЕЙ -->
-        <div id="start-screen" class="overlay">
-            <h1>🚀 МИССИЯ: КИБЕРЩИТ</h1>
+        <!-- GAME -->
+        <div id="game-viewport">
             
-            <div class="input-group">
-                <label class="input-label">Идентификация пилота:</label>
-                <input type="text" id="player-name" class="cyber-input" placeholder="Введите ваше имя..." maxlength="15">
+            <video id="video-layer" playsinline></video>
+            
+            <div id="sim-layer">
+                <div class="loader-ring"></div>
+                <h2 style="margin-top:20px" id="sim-text">ЗАГРУЗКА ДАННЫХ...</h2>
             </div>
 
-            <button class="btn" onclick="startGame()">✅ ПРИСТУПИТЬ К МИССИИ</button>
-            
-            <div style="margin-top: 20px; width: 100%; max-width: 600px;">
-                <div class="total-counter">
-                    <span>Всего запусков: <b id="total-attempts" style="color:white">0</b></span>
-                    <span>Побед: <b id="total-wins" style="color:var(--neon-green)">0</b></span>
+            <div id="hud" class="hidden">
+                <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div> <span id="health-val">100%</span></div>
+                <div class="hud-item">👤 <span id="user-name-display">GUEST</span></div>
+                <div class="hud-item">💠 <span id="score-val">0</span></div>
+            </div>
+
+            <!-- START -->
+            <div id="start-screen" class="overlay">
+                <h1>CYBERSHIELD v2.1</h1>
+                <h2>Data-Driven Security Simulator</h2>
+                <input type="text" id="username-input" placeholder="ВВЕДИТЕ ПОЗЫВНОЙ" 
+                       style="background: transparent; border: 1px solid #555; padding: 10px; color: white; font-family: inherit; margin-bottom: 20px; text-align: center; width: 250px; font-size: 1.2rem;">
+                
+                <div>
+                    <button class="btn" onclick="Game.init()">ЗАПУСТИТЬ СИСТЕМУ</button>
+                    <button class="btn" style="border-color: #555; color: #aaa; font-size: 1rem;" onclick="Stats.show()">📊 БАЗА ДАННЫХ</button>
                 </div>
-                <div style="text-align: left; color: #888; font-size: 0.8rem; margin-bottom: 5px;">ПОСЛЕДНИЕ ОПЕРАЦИИ:</div>
-                <div id="leaderboard" class="stats-panel">
-                    <!-- Сюда JS добавит записи -->
-                    <div style="text-align: center; color: #555; padding: 10px;">Нет данных</div>
+                
+                <div style="margin-top: 20px; font-size: 0.8rem; color: #666;">
+                    GitHub Edition | Big Data Project 2026
                 </div>
             </div>
-        </div>
 
-        <!-- 2. ОБУЧЕНИЕ -->
-        <div id="edu-screen" class="overlay hidden">
-            <h1 style="color: #ffcc00">⚠️ АНАЛИЗ УГРОЗЫ</h1>
-            <div class="edu-card">
-                <div class="edu-title">📁 ТИП: <span id="edu-type-text">...</span></div>
-                <div class="edu-text" id="edu-desc-text">...</div>
+            <!-- STATS SCREEN -->
+            <div id="stats-screen" class="overlay hidden">
+                <h1>АРХИВ МИССИЙ</h1>
+                <div id="admin-panel">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <span>ВСЕГО ЗАПУСКОВ: <b id="stat-total" style="color:white">0</b></span>
+                        <span>УСПЕШНО: <b id="stat-wins" style="color:var(--neon-green)">0</b></span>
+                    </div>
+                    <table id="stats-table">
+                        <thead><tr><th>ДАТА</th><th>ПИЛОТ</th><th>СЧЕТ</th><th>СТАТУС</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="Stats.hide()">НАЗАД</button>
+                    <button class="btn btn-danger" onclick="Stats.clear()">ОЧИСТИТЬ БАЗУ</button>
+                </div>
             </div>
-            <button class="btn btn-next" onclick="proceedToChoice()">ПРИНЯТЬ РЕШЕНИЕ ▶</button>
-        </div>
 
-        <!-- 3. ВЫБОР -->
-        <div id="ui-choice" class="overlay hidden">
-            <h1 id="choice-title" style="color: #fff">ЗАПРОС</h1>
-            <p id="choice-desc" style="font-size: 1.2rem; margin-bottom: 30px; padding: 0 20px;"></p>
-            <div id="buttons-container" class="btn-container"></div>
-        </div>
-
-        <!-- 4. РЕЗУЛЬТАТ -->
-        <div id="feedback-screen" class="overlay hidden">
-            <h1 id="fb-title">РЕЗУЛЬТАТ</h1>
-            <div id="fb-card" class="edu-card">
-                <div class="edu-title" id="fb-subtitle"></div>
-                <div class="edu-text" id="fb-text"></div>
+            <!-- OTHER SCREENS -->
+            <div id="edu-screen" class="overlay hidden">
+                <h1>⚠ ОБНАРУЖЕНА УГРОЗА</h1>
+                <div class="info-card">
+                    <div class="info-title" id="edu-title">ТИП УГРОЗЫ</div>
+                    <div id="edu-text">Описание...</div>
+                </div>
+                <button class="btn" onclick="Game.nextStep()">ПРИНЯТЬ УПРАВЛЕНИЕ</button>
             </div>
-            <button class="btn btn-next" onclick="nextPhase()">ПРОДОЛЖИТЬ ▶</button>
-        </div>
 
-        <!-- 5. ФИНАЛЫ -->
-        <div id="game-over-screen" class="overlay hidden" style="background: rgba(50,0,0,0.95)">
-            <h1 style="color: #ff3333; font-size: 3rem;">👾 ПРОВАЛ</h1>
-            <p>Ваши данные зашифрованы.</p>
-            <p style="color: #888; margin-top: 10px;">Результат сохранен в базе.</p>
-            <button class="btn btn-danger" onclick="location.reload()">🔄 НОВАЯ ПОПЫТКА</button>
-        </div>
-
-        <div id="win-screen" class="overlay hidden" style="background: rgba(0,50,0,0.95)">
-            <h1 style="color: #00ff00; font-size: 3rem;">🏆 МИССИЯ УСПЕШНА!</h1>
-            <div class="author-badge">
-                <p>Пилот: <span id="final-pilot-name">Unknown</span></p>
-                <p style="font-size: 1.5rem">СЧЕТ: <span id="final-score">0</span></p>
+            <div id="choice-screen" class="overlay hidden">
+                <h1 id="choice-header">ВХОДЯЩИЙ ЗАПРОС</h1>
+                <p id="choice-desc">...</p>
+                <div id="choice-buttons"></div>
             </div>
-            <p style="color: #888;">Отчет отправлен в центр управления.</p>
-            <button class="btn" onclick="location.reload()">🔄 ВЕРНУТЬСЯ В ШТАБ</button>
+
+            <div id="feedback-screen" class="overlay hidden">
+                <h1 id="fb-header">РЕЗУЛЬТАТ</h1>
+                <p id="fb-desc">...</p>
+                <button class="btn" onclick="Game.resolveLevel()">ПРОДОЛЖИТЬ</button>
+            </div>
+
+            <div id="end-screen" class="overlay hidden">
+                <h1 id="end-title">МИССИЯ ЗАВЕРШЕНА</h1>
+                <h2 id="end-score">СЧЕТ: 0</h2>
+                <button class="btn" onclick="location.reload()">ГЛАВНОЕ МЕНЮ</button>
+            </div>
+
         </div>
     </div>
 
     <script>
-        // --- ПЕРЕМЕННЫЕ ---
-        const videoPlayer = document.getElementById('mainVideo');
-        const simPlaceholder = document.getElementById('simulation-placeholder');
-        const simText = document.getElementById('sim-text');
-        
-        // Экраны
-        const startScreen = document.getElementById('start-screen');
-        const eduScreen = document.getElementById('edu-screen');
-        const uiChoice = document.getElementById('ui-choice');
-        const feedbackScreen = document.getElementById('feedback-screen');
-        const gameOverScreen = document.getElementById('game-over-screen');
-        const winScreen = document.getElementById('win-screen');
-        
-        // Элементы интерфейса
-        const hudPanel = document.getElementById('hud-panel');
-        const healthFill = document.getElementById('health-fill');
-        const healthVal = document.getElementById('health-val');
-        const scoreVal = document.getElementById('score-val');
-        const alertPopup = document.getElementById('alert-popup');
-        const playerNameInput = document.getElementById('player-name');
-        const hudName = document.getElementById('hud-name');
+        /* === SCENARIOS DATA === */
+        const SCENARIOS = [
+            { id: "intro", type: "video", src: "intro.mp4", simText: "ЗАГРУЗКА ИНТЕРФЕЙСА...", log: "Запуск протоколов безопасности..." },
+            { id: "l1_theory", type: "education", title: "ФИШИНГ (PHISHING)", text: "Мошенничество с целью кражи паролей. Признаки: срочность, обещание выгоды.", log: "Анализ трафика: Подозрительный Email." },
+            { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ВХОДЯЩЕЕ СООБЩЕНИЕ...", log: "Событие: Получено письмо с вложением." },
+            { id: "l1_choice", type: "choice", header: "🚨 ПОДОЗРИТЕЛЬНАЯ ССЫЛКА", desc: "Письмо: 'Вы выиграли планшет! Жми сюда!'", options: [
+                { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно! Ссылка вела на фишинговый сайт.", score: 500 },
+                { text: "🎁 ОТКРЫТЬ", correct: false, feedback: "Ошибка! Скрипт запущен.", score: 0, damage: 30 }
+            ]},
+            { id: "l2_virus", type: "video", src: "virus_map.mp4", simText: "РАСПРОСТРАНЕНИЕ УГРОЗЫ...", log: "ВНИМАНИЕ: Сетевая активность вируса." },
+            { id: "l2_theory", type: "education", title: "RANSOMWARE", text: "Программа-вымогатель. Шифрует файлы и требует выкуп.", log: "Файловая система зашифрована." },
+            { id: "l2_choice", type: "choice", header: "🤖 ВЫМОГАТЕЛЬ", desc: "Экран заблокирован. Требуют выкуп.", options: [
+                { text: "💸 ЗАПЛАТИТЬ", correct: false, feedback: "Провал. Хакеры не вернули доступ.", score: 0, damage: 100 },
+                { text: "🔧 БЭКАП", correct: true, feedback: "Отлично! Система восстановлена из копии.", score: 1000 }
+            ]},
+             { id: "win", type: "video", src: "win.mp4", simText: "СИСТЕМА ВОССТАНОВЛЕНА", log: "Угроза устранена." }
+        ];
 
-        let score = 0;
-        let currentHealth = 100;
-        let currentPhase = 0; 
-        let nextCallback = null;
-        let playerName = "Курсант";
-
-        // Хранилище статистики
-        const DB_KEY = 'cyberShieldData_v1';
-
-        // --- ИНИЦИАЛИЗАЦИЯ СТАТИСТИКИ ---
-        function loadStats() {
-            const data = JSON.parse(localStorage.getItem(DB_KEY)) || { attempts: 0, wins: 0, history: [] };
+        /* === DB MANAGER === */
+        const Stats = {
+            key: 'CYBERSHIELD_DB_V2',
             
-            document.getElementById('total-attempts').innerText = data.attempts;
-            document.getElementById('total-wins').innerText = data.wins;
+            get() {
+                return JSON.parse(localStorage.getItem(this.key)) || [];
+            },
+            
+            save(record) {
+                const data = this.get();
+                data.push(record);
+                localStorage.setItem(this.key, JSON.stringify(data));
+            },
+            
+            clear() {
+                if(confirm('Удалить всю историю?')) {
+                    localStorage.removeItem(this.key);
+                    this.render();
+                }
+            },
 
-            const list = document.getElementById('leaderboard');
-            if (data.history.length > 0) {
-                list.innerHTML = '';
-                // Показываем последние 10 игр
-                data.history.slice().reverse().slice(0, 10).forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'stat-row';
-                    const statusClass = item.status === 'ПОБЕДА' ? 'stat-win' : 'stat-fail';
-                    row.innerHTML = `
-                        <span>${item.date} | <b>${item.name}</b></span>
-                        <span class="${statusClass}">${item.status} (${item.score})</span>
+            show() {
+                Game.hideAllOverlays();
+                document.getElementById('stats-screen').classList.remove('hidden');
+                this.render();
+            },
+
+            hide() {
+                document.getElementById('stats-screen').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+            },
+
+            render() {
+                const data = this.get();
+                const tbody = document.querySelector('#stats-table tbody');
+                tbody.innerHTML = '';
+                
+                let wins = 0;
+                // Show last 10 records, newest first
+                data.slice().reverse().slice(0, 50).forEach(rec => {
+                    if(rec.status === 'WIN') wins++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="color:#888">${rec.date}</td>
+                        <td style="font-weight:bold">${rec.user}</td>
+                        <td>${rec.score}</td>
+                        <td class="${rec.status === 'WIN' ? 'status-win' : 'status-fail'}">${rec.status === 'WIN' ? 'УСПЕХ' : 'ПРОВАЛ'}</td>
                     `;
-                    list.appendChild(row);
+                    tbody.appendChild(tr);
                 });
+
+                document.getElementById('stat-total').innerText = data.length;
+                document.getElementById('stat-wins').innerText = wins;
             }
-        }
-        
-        // Загружаем статистику при запуске страницы
-        loadStats();
-
-        function saveGameResult(status) {
-            const data = JSON.parse(localStorage.getItem(DB_KEY)) || { attempts: 0, wins: 0, history: [] };
-            
-            data.attempts++;
-            if (status === 'ПОБЕДА') data.wins++;
-
-            const now = new Date();
-            const dateStr = now.getHours() + ':' + (now.getMinutes()<10?'0':'') + now.getMinutes();
-
-            data.history.push({
-                name: playerName,
-                score: score,
-                status: status,
-                date: dateStr
-            });
-
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-        }
-
-        // --- МЕДИА ---
-        const videos = {
-            intro: 'intro.mp4', phishing: 'phishing.mp4', virus_map: 'virus_map.mp4',
-            glitch: 'glitch.mp4', ai_scan: 'ai_scan.mp4', win: 'win.mp4', lose: 'lose.mp4'
         };
 
-        function playSound(id) {
-            const sound = document.getElementById(id);
-            if (sound) { sound.currentTime = 0; sound.volume = 0.5; sound.play().catch(()=>{}); }
-        }
+        /* === GAME ENGINE === */
+        const Game = {
+            state: { stepIndex: 0, score: 0, health: 100, user: "GUEST" },
+            ui: {
+                video: document.getElementById('video-layer'),
+                sim: document.getElementById('sim-layer'),
+                hud: document.getElementById('hud'),
+                logs: document.getElementById('system-logs'),
+                screens: {
+                    start: document.getElementById('start-screen'),
+                    edu: document.getElementById('edu-screen'),
+                    choice: document.getElementById('choice-screen'),
+                    feedback: document.getElementById('feedback-screen'),
+                    end: document.getElementById('end-screen'),
+                    stats: document.getElementById('stats-screen')
+                }
+            },
 
-        function playScenario(videoSrc, simTitle, duration, callback) {
-            videoPlayer.style.display = 'block';
-            simPlaceholder.style.display = 'none';
-            videoPlayer.src = videoSrc;
-            const playPromise = videoPlayer.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => { videoPlayer.onended = callback; })
-                .catch(() => { runSimulation(simTitle, duration, callback); });
-            } else { runSimulation(simTitle, duration, callback); }
-            videoPlayer.onerror = () => { runSimulation(simTitle, duration, callback); };
-        }
+            init() {
+                const name = document.getElementById('username-input').value.trim();
+                if(name) this.state.user = name;
+                document.getElementById('user-name-display').innerText = this.state.user;
+                this.log(`> Регистрация пилота: ${this.state.user}`, 'success');
+                this.ui.screens.start.classList.add('hidden');
+                this.ui.hud.classList.remove('hidden');
+                this.runStep();
+            },
 
-        function runSimulation(text, ms, callback) {
-            videoPlayer.style.display = 'none';
-            simPlaceholder.style.display = 'flex';
-            simText.innerText = text;
-            setTimeout(callback, ms);
-        }
+            runStep() {
+                if (this.state.stepIndex >= SCENARIOS.length) {
+                    this.finishGame(true);
+                    return;
+                }
+                const s = SCENARIOS[this.state.stepIndex];
+                if(s.log) this.log(`> ${s.log}`);
+                if(s.type === 'video') this.playVideo(s);
+                else if(s.type === 'education') this.showEdu(s);
+                else if(s.type === 'choice') this.showChoice(s);
+            },
 
-        function updateHUD(healthChange, pointsToAdd) {
-            currentHealth += healthChange;
-            if(currentHealth > 100) currentHealth = 100;
-            if(currentHealth < 0) currentHealth = 0;
-            healthFill.style.width = currentHealth + '%';
-            healthVal.innerText = currentHealth + '%';
-            if(pointsToAdd > 0) {
-                score += pointsToAdd;
-                scoreVal.innerText = score;
-            }
-            if (currentHealth < 30) healthFill.style.background = '#ff3333';
-            else if (currentHealth < 60) healthFill.style.background = '#ffcc00';
-            else healthFill.style.background = '#00ff00';
-        }
+            playVideo(s) {
+                this.hideAllOverlays();
+                this.ui.video.style.display = 'block';
+                this.ui.sim.style.display = 'none';
+                this.ui.video.src = s.src;
+                this.ui.video.play().catch(() => this.runSim(s));
+                this.ui.video.onended = () => this.nextStep();
+                this.ui.video.onerror = () => this.runSim(s);
+            },
 
-        // --- ЛОГИКА ИГРЫ ---
-        function startGame() {
-            const name = playerNameInput.value.trim();
-            if (!name) {
-                alert("⚠️ Пожалуйста, введите имя пилота!");
-                return;
-            }
-            playerName = name;
-            hudName.innerText = playerName.toUpperCase();
-            
-            playSound('sfx-click');
-            startScreen.classList.add('hidden');
-            hudPanel.style.display = 'flex';
-            
-            playScenario(videos.intro, "ЗАГРУЗКА СИСТЕМЫ...", 2000, () => {
-                playScenario(videos.phishing, "ВХОДЯЩЕЕ СООБЩЕНИЕ...", 3000, preparePhishingPhase);
-            });
-        }
+            runSim(s) {
+                this.ui.video.style.display = 'none';
+                this.ui.sim.style.display = 'flex';
+                document.getElementById('sim-text').innerText = s.simText;
+                setTimeout(() => this.nextStep(), 2500);
+            },
 
-        // ЭТАП 1
-        function preparePhishingPhase() {
-            showEdu("ФИШИНГ (Phishing)", 
-                "Мошенничество с целью кражи паролей.<br>Признаки: обещание выгоды, срочность, странные ссылки.");
-        }
+            showEdu(s) {
+                this.hideAllOverlays();
+                document.getElementById('edu-title').innerText = s.title;
+                document.getElementById('edu-text').innerText = s.text;
+                this.ui.screens.edu.classList.remove('hidden');
+            },
 
-        function showEdu(title, text) {
-            document.getElementById('edu-type-text').innerText = title;
-            document.getElementById('edu-desc-text').innerHTML = text;
-            eduScreen.classList.remove('hidden');
-        }
-
-        function proceedToChoice() {
-            playSound('sfx-click');
-            eduScreen.classList.add('hidden');
-            
-            if (!currentPhase) {
-                currentPhase = 1;
-                showChoiceUI("🚨 ПОДОЗРИТЕЛЬНАЯ ССЫЛКА", 
-                    "В почте письмо: «Вы выиграли приз! Жмите срочно!»",
-                    [{ text: "🛡️ УДАЛИТЬ", action: () => handleResult(true, "phishing") },
-                     { text: "🎁 ОТКРЫТЬ", action: () => handleResult(false, "phishing"), style: "btn-danger" }]
-                );
-            } else if (currentPhase === 2) {
-                showChoiceUI("🤖 ВИРУС-ВЫМОГАТЕЛЬ", 
-                    "Экран заблокирован. Требуют выкуп.",
-                    [{ text: "💸 ЗАПЛАТИТЬ", action: () => handleResult(false, "virus"), style: "btn-danger" },
-                     { text: "🛠️ ЛЕЧИТЬ АНТИВИРУСОМ", action: () => handleResult(true, "virus") }]
-                );
-            }
-        }
-
-        function showChoiceUI(title, desc, buttons) {
-            document.getElementById('choice-title').innerText = title;
-            document.getElementById('choice-desc').innerText = desc;
-            const container = document.getElementById('buttons-container');
-            container.innerHTML = '';
-            buttons.forEach(btn => {
-                const b = document.createElement('button');
-                b.innerText = btn.text;
-                b.className = `btn ${btn.style || ''}`;
-                b.onclick = btn.action;
-                container.appendChild(b);
-            });
-            uiChoice.classList.remove('hidden');
-        }
-
-        function handleResult(isCorrect, type) {
-            playSound('sfx-click');
-            uiChoice.classList.add('hidden');
-            const fbCard = document.getElementById('fb-card');
-            
-            if (isCorrect) {
-                playSound('sfx-win');
-                document.getElementById('fb-title').innerText = "ВЕРНОЕ РЕШЕНИЕ";
-                fbCard.className = "edu-card feedback-correct";
-                updateHUD(0, 500);
-            } else {
-                playSound('sfx-wrong'); playSound('sfx-alarm');
-                document.getElementById('fb-title').innerText = "ОШИБКА";
-                fbCard.className = "edu-card feedback-wrong";
-                updateHUD(-40, 0);
-                showAlert("КРИТИЧЕСКИЙ УРОН!");
-            }
-
-            if (type === "phishing") {
-                document.getElementById('fb-subtitle').innerText = isCorrect ? "УГРОЗА ОТРАЖЕНА" : "СИСТЕМА ВЗЛОМАНА";
-                document.getElementById('fb-text').innerText = isCorrect 
-                    ? "Отлично! Ссылки от незнакомцев открывать нельзя." 
-                    : "Вы перешли по ссылке и загрузили вирус. Никогда не верьте 'бесплатным призам'.";
-                nextCallback = startVirusPhase;
-            } else {
-                document.getElementById('fb-subtitle').innerText = isCorrect ? "ЛЕЧЕНИЕ УСПЕШНО" : "ДАННЫЕ ПОТЕРЯНЫ";
-                document.getElementById('fb-text').innerText = isCorrect 
-                    ? "Верно! Выкуп платить бесполезно. Антивирус спас ситуацию." 
-                    : "Вы заплатили, но хакеры просто исчезли с деньгами.";
-                nextCallback = isCorrect ? triggerFinalWin : triggerFinalLose;
-            }
-            feedbackScreen.classList.remove('hidden');
-        }
-
-        function nextPhase() {
-            playSound('sfx-click');
-            feedbackScreen.classList.add('hidden');
-            if (nextCallback) nextCallback();
-        }
-
-        function startVirusPhase() {
-            playScenario(videos.virus_map, "РАСПРОСТРАНЕНИЕ ВИРУСА...", 2500, () => {
-                playScenario(videos.glitch, "СБОЙ СИСТЕМЫ...", 1500, () => {
-                    playScenario(videos.ai_scan, "СКАНИРОВАНИЕ...", 2500, () => {
-                        currentPhase = 2;
-                        showEdu("RANSOMWARE (Вымогатель)", "Вирус, шифрующий файлы. Защита: бэкапы и антивирус.");
-                    });
+            showChoice(s) {
+                this.hideAllOverlays();
+                document.getElementById('choice-header').innerText = s.header;
+                document.getElementById('choice-desc').innerText = s.desc;
+                const c = document.getElementById('choice-buttons');
+                c.innerHTML = '';
+                s.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = opt.correct ? 'btn' : 'btn btn-danger';
+                    btn.innerText = opt.text;
+                    btn.onclick = () => this.handleChoice(opt);
+                    c.appendChild(btn);
                 });
-            });
-        }
+                this.ui.screens.choice.classList.remove('hidden');
+            },
 
-        function showAlert(text) {
-            alertPopup.innerText = text;
-            alertPopup.style.display = 'block';
-            setTimeout(() => { alertPopup.style.display = 'none'; }, 2000);
-        }
+            handleChoice(opt) {
+                this.log(`> Решение: ${opt.text}`, opt.correct ? 'success' : 'warn');
+                if(opt.score) this.updateScore(opt.score);
+                if(opt.damage) this.updateHealth(-opt.damage);
+                
+                document.getElementById('fb-header').innerText = opt.correct ? "УСПЕХ" : "ОШИБКА";
+                document.getElementById('fb-header').style.color = opt.correct ? "var(--neon-green)" : "var(--neon-red)";
+                document.getElementById('fb-desc').innerText = opt.feedback;
+                
+                this.ui.screens.choice.classList.add('hidden');
+                this.ui.screens.feedback.classList.remove('hidden');
+                
+                if (this.state.health <= 0) setTimeout(() => this.finishGame(false), 1500);
+            },
 
-        // --- ФИНАЛЫ ---
-        function triggerFinalWin() {
-            playScenario(videos.win, "СИСТЕМА ЧИСТА", 2000, () => {
-                playSound('sfx-win');
-                document.getElementById('final-score').innerText = score;
-                document.getElementById('final-pilot-name').innerText = playerName;
-                winScreen.classList.remove('hidden');
-                saveGameResult('ПОБЕДА');
-            });
-        }
+            resolveLevel() {
+                if (this.state.health > 0) this.nextStep();
+                else this.finishGame(false);
+            },
 
-        function triggerFinalLose() {
-            playScenario(videos.lose, "СИСТЕМА УНИЧТОЖЕНА", 2000, () => {
-                gameOverScreen.classList.remove('hidden');
-                saveGameResult('ПРОВАЛ');
-            });
-        }
+            nextStep() { this.state.stepIndex++; this.runStep(); },
+
+            updateScore(v) { this.state.score += v; document.getElementById('score-val').innerText = this.state.score; },
+            updateHealth(v) {
+                this.state.health += v;
+                if(this.state.health < 0) this.state.health = 0;
+                const bar = document.getElementById('health-bar-fill');
+                bar.style.width = this.state.health + "%";
+                document.getElementById('health-val').innerText = this.state.health + "%";
+                if(this.state.health < 30) bar.style.background = 'var(--neon-red)';
+            },
+
+            log(msg, type='info') {
+                const d = document.createElement('div');
+                d.className = `log-entry log-${type}`;
+                d.innerText = `[${new Date().toLocaleTimeString('ru-RU')}] ${msg}`;
+                this.ui.logs.prepend(d);
+            },
+
+            hideAllOverlays() {
+                Object.values(this.ui.screens).forEach(el => el.classList.add('hidden'));
+            },
+
+            finishGame(isWin) {
+                this.hideAllOverlays();
+                this.ui.screens.end.classList.remove('hidden');
+                const title = document.getElementById('end-title');
+                title.innerText = isWin ? "ПОБЕДА" : "СИСТЕМА УНИЧТОЖЕНА";
+                title.style.color = isWin ? "var(--neon-green)" : "var(--neon-red)";
+                document.getElementById('end-score').innerText = `СЧЕТ: ${this.state.score}`;
+                
+                // SAVE STATS
+                Stats.save({
+                    date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    user: this.state.user,
+                    score: this.state.score,
+                    status: isWin ? 'WIN' : 'FAIL'
+                });
+            }
+        };
     </script>
 </body>
-</html>
+</html>           
