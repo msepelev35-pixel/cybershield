@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Complete</title>
+    <title>Миссия: Киберщит | Performance Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- COMPLETE STYLES --- */
+        /* --- STYLES PRESERVED --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
@@ -51,7 +51,6 @@
             z-index: 10;
         }
         
-        /* Ловушка для клика */
         #click-trap {
             position: absolute; inset: 0; z-index: 45; 
             display: none; background: rgba(0,0,0,0.4); 
@@ -59,7 +58,6 @@
         }
         #click-trap.active { display: block; }
 
-        /* Виньетка */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: 
@@ -73,11 +71,11 @@
             width: 100%; height: 100%; 
             object-fit: cover; 
             display: none; 
-            opacity: 0; transition: opacity 0.5s; 
+            opacity: 0; transition: opacity 0.4s;
+            background: #000;
         }
         video.playing { opacity: 1; display: block; }
 
-        /* --- ЗАГЛУШКА --- */
         #sim-layer {
             position: absolute; inset: 0; display: flex;
             flex-direction: column; justify-content: center; align-items: center;
@@ -112,7 +110,6 @@
         }
         @keyframes pulse { 0% {opacity: 0.5;} 100% {opacity: 1;} }
 
-        /* --- МЕНЮ (Side Menu) --- */
         #side-menu {
             position: absolute;
             background: rgba(8, 12, 18, 0.98);
@@ -138,7 +135,6 @@
         }
         .close-menu-btn:hover { color: #fff; }
 
-        /* --- HUD --- */
         #hud {
             position: absolute; top: 0; left: 0; right: 0;
             padding: 15px; display: flex; justify-content: space-between;
@@ -166,7 +162,6 @@
         #health-bar-container { width: 80px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; box-shadow: 0 0 8px var(--neon-green); }
 
-        /* --- SCREENS --- */
         .overlay {
             position: absolute; inset: 0; background: var(--glass); 
             backdrop-filter: blur(12px);
@@ -210,7 +205,6 @@
             box-shadow: 0 0 25px var(--neon-blue); white-space: nowrap; text-transform: uppercase;
         }
 
-        /* --- АДАПТИВНОСТЬ --- */
         @media (orientation: portrait) {
             #main-wrapper { flex-direction: column; }
             #side-menu { 
@@ -250,13 +244,14 @@
 
         <div id="side-menu" class="collapsed">
             <div class="close-menu-btn" onclick="window.UI.toggleTerminal()">&#10005;</div>
-            <div class="log-entry log-info">> Загрузка ядра системы v5.0...</div>
-            <div class="log-entry log-info">> Проверка безопасности... OK</div>
+            <div class="log-entry log-info">> Загрузка ядра системы v5.2...</div>
+            <div class="log-entry log-info">> Оптимизация видео-потока... OK</div>
             <div class="log-entry log-info">> Ожидание авторизации...</div>
         </div>
 
         <div id="game-viewport">
-            <video id="video-layer" playsinline webkit-playsinline preload="auto"></video>
+            <!-- Добавлено muted для ускорения автоплея на мобильных -->
+            <video id="video-layer" playsinline webkit-playsinline preload="auto" muted></video>
             
             <div id="sim-layer">
                 <div class="radar"></div>
@@ -279,7 +274,7 @@
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
-                    <h2>COMPLETE EDITION</h2>
+                    <h2>DIAMOND EDITION</h2>
                     <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="12"
                            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 15px; color: white; font-family: inherit; margin-bottom: 30px; text-align: center; width: 280px; font-size: 1.2rem; border-radius: 6px; outline: none; letter-spacing: 2px; text-transform: uppercase;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК СИСТЕМЫ</button>
@@ -287,7 +282,6 @@
                 </div>
             </div>
 
-            <!-- OTHER SCREENS... -->
             <div id="stats-screen" class="overlay hidden">
                 <div class="overlay-content">
                     <h1>АРХИВ МИССИЙ</h1>
@@ -338,7 +332,7 @@
         </div>
     </div>
 
-    <!-- FIREBASE -->
+    <!-- FIREBASE MODULE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -347,7 +341,7 @@
         try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
         window.Stats = {
-            localKey: 'CYBERSHIELD_COMPLETE_V1',
+            localKey: 'CYBERSHIELD_COMPLETE_V2',
             async save(record) {
                 const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
                 localData.push(record);
@@ -400,7 +394,6 @@
                 
                 try {
                     const now = this.ctx.currentTime;
-                    // Компрессор для плотного звука
                     const compressor = this.ctx.createDynamicsCompressor();
                     compressor.threshold.setValueAtTime(-50, now);
                     compressor.knee.setValueAtTime(40, now);
@@ -422,7 +415,6 @@
                         osc.connect(gain); osc.start(now); osc.stop(now + 0.08);
                     } 
                     else if (type === 'success') {
-                        // Арпеджио
                         [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                             const osc = this.ctx.createOscillator();
                             osc.type = 'triangle';
@@ -441,8 +433,7 @@
                         const osc2 = this.ctx.createOscillator();
                         osc1.type = 'sawtooth'; osc2.type = 'square';
                         osc1.frequency.setValueAtTime(110, now);
-                        osc2.frequency.setValueAtTime(105, now); // Диссонанс
-                        
+                        osc2.frequency.setValueAtTime(105, now);
                         gain.gain.setValueAtTime(0.2, now);
                         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
                         osc1.connect(gain); osc2.connect(gain);
@@ -453,7 +444,6 @@
             }
         };
 
-        // УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ
         window.UI = {
             showToast(text) {
                 const t = document.getElementById('toast');
@@ -467,57 +457,37 @@
                 const term = document.getElementById('side-menu');
                 const btn = document.getElementById('btn-logs');
                 const trap = document.getElementById('click-trap');
-                
                 term.classList.toggle('collapsed');
-                
-                if (!term.classList.contains('collapsed')) {
-                    btn.innerHTML = "&#10005;"; 
-                    trap.classList.add('active'); 
-                } else {
-                    btn.innerHTML = "&#9776;"; 
-                    trap.classList.remove('active'); 
-                }
+                if (!term.classList.contains('collapsed')) { btn.innerHTML = "&#10005;"; trap.classList.add('active'); } 
+                else { btn.innerHTML = "&#9776;"; trap.classList.remove('active'); }
             },
             toggleFullscreen() {
                 window.Sound.play('click');
                 const btn = document.getElementById('btn-fullscreen');
-                
-                // Проверяем актуальное состояние
                 const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-
                 if (!isFs) {
                     const req = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
                     if (req) {
                         req.call(document.documentElement).then(() => {
-                            if (screen.orientation && screen.orientation.lock) {
-                                screen.orientation.lock('landscape').catch(e => console.log("Lock ignored"));
-                            }
+                            if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(e => console.log("Lock ignored")); }
                             this.showToast("ПОВЕРНИТЕ УСТРОЙСТВО");
                         }).catch(e => console.log("FS Blocked"));
                     }
                 } else {
                     const exit = document.exitFullscreen || document.webkitExitFullscreen;
-                    if (exit) {
-                        exit.call(document).then(() => {
-                            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
-                        });
-                    }
+                    if (exit) { exit.call(document).then(() => { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }); }
                 }
             },
-            // Функция синхронизации иконки (вызывается событием)
             syncIcon() {
                 const btn = document.getElementById('btn-fullscreen');
                 const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-                if (isFs) btn.innerHTML = "&#10539;"; // Свернуть
-                else btn.innerHTML = "&#9974;"; // Развернуть
+                btn.innerHTML = isFs ? "&#10539;" : "&#9974;";
             }
         };
 
-        // Слушаем реальные события браузера
         document.addEventListener('fullscreenchange', window.UI.syncIcon);
         document.addEventListener('webkitfullscreenchange', window.UI.syncIcon);
 
-        // СЦЕНАРИИ
         const SCENARIOS = [
             { id: "intro", type: "video", src: "intro.mp4", simText: "ИНИЦИАЛИЗАЦИЯ...", log: "Запуск протокола защиты..." },
             { id: "ai_scan", type: "video", src: "ai_scan.mp4", simText: "СКАНИРОВАНИЕ...", log: "Анализ уязвимостей..." },
@@ -532,8 +502,7 @@
             { id: "l2_choice", type: "choice", header: "ШИФРОВАЛЬЩИК", desc: "Экран заблокирован. Злоумышленник требует выкуп в криптовалюте за расшифровку.", options: [
                 { text: "💸 ЗАПЛАТИТЬ", correct: false, feedback: "Ошибка. Файлы не расшифрованы, деньги потеряны. Никогда не платите шантажистам.", score: 0, damage: 100 },
                 { text: "🔧 ВОССТАНОВИТЬ", correct: true, feedback: "Успех! Система восстановлена из облачной резервной копии.", score: 1000 }
-            ]},
-             { id: "win", type: "video", src: "win.mp4", simText: "УГРОЗА УСТРАНЕНА", log: "Система очищена." }
+            ]}
         ];
 
         window.Game = {
@@ -547,13 +516,14 @@
                 const name = document.getElementById('username-input').value.trim();
                 if(name) this.state.user = name;
                 document.getElementById('user-name-display').innerText = this.state.user;
-                
                 this.toggleScreen('start-screen', false);
                 document.getElementById('hud').classList.remove('hidden');
                 
-                // Принудительная синхронизация иконки
-                window.UI.syncIcon();
+                // Включаем звук видео после клика
+                const v = document.getElementById('video-layer');
+                v.muted = false; 
                 
+                window.UI.syncIcon();
                 this.isBusy = false;
                 this.runStep();
             },
@@ -561,7 +531,6 @@
                 if (this.state.stepIndex >= SCENARIOS.length) { this.finish(true); return; }
                 const s = SCENARIOS[this.state.stepIndex];
                 if(s.log) this.log(s.log);
-                
                 if(s.type === 'video') this.playVideo(s);
                 else if(s.type === 'education') this.showEdu(s);
                 else if(s.type === 'choice') this.showChoice(s);
@@ -570,36 +539,39 @@
                 this.hideAllOverlays();
                 const v = document.getElementById('video-layer');
                 const sim = document.getElementById('sim-layer');
-                
-                // Сброс классов
                 v.classList.remove('playing');
                 sim.classList.remove('fade-out');
                 
+                // PERFORMANCE FIX: Явный сброс и загрузка
+                v.pause();
                 v.src = s.src;
-                v.muted = false; 
-                v.volume = 1.0;
+                v.load(); 
                 
-                const promise = v.play();
-                if (promise !== undefined) {
-                    promise
-                    .then(() => {
-                        // Успешный запуск
+                // Ждем готовности телефона воспроизвести без рывков
+                const onReady = () => {
+                    v.play().then(() => {
                         v.classList.add('playing');
                         sim.classList.add('fade-out');
-                    })
-                    .catch(error => {
-                        console.log("Autoplay fallback");
-                        // Fallback на симуляцию
-                        document.getElementById('sim-text').innerText=s.simText; 
-                        setTimeout(()=>this.nextStep(), 3000); 
-                    });
-                }
-                v.onended = () => this.nextStep();
-                v.onerror = () => { 
-                    // Если файла нет
-                    document.getElementById('sim-text').innerText=s.simText; 
-                    setTimeout(()=>this.nextStep(), 3000); 
+                    }).catch(e => this.videoFallback(s));
+                    v.removeEventListener('canplaythrough', onReady);
                 };
+                v.addEventListener('canplaythrough', onReady);
+                
+                // Резервный таймер (если видео зависло на 10 сек)
+                this.videoTimeout = setTimeout(() => {
+                    if (!v.classList.contains('playing')) this.videoFallback(s);
+                }, 10000);
+
+                v.onended = () => {
+                    clearTimeout(this.videoTimeout);
+                    this.nextStep();
+                };
+                v.onerror = () => this.videoFallback(s);
+            },
+            videoFallback(s) {
+                clearTimeout(this.videoTimeout);
+                document.getElementById('sim-text').innerText = s.simText; 
+                setTimeout(() => this.nextStep(), 3000); 
             },
             showEdu(s) {
                 this.hideAllOverlays();
@@ -634,19 +606,15 @@
                 this.isBusy = true;
                 window.Sound.play(opt.correct ? 'success' : 'error');
                 document.getElementById('choice-screen').classList.add('hidden');
-                
                 this.log(`Решение: ${opt.text}`, opt.correct ? 'success' : 'warn');
                 if(opt.score) this.state.score += opt.score;
                 if(opt.damage) this.updateHealth(-opt.damage);
-                
                 document.getElementById('score-val').innerText = this.state.score;
                 document.getElementById('fb-header').innerText = opt.correct ? "УСПЕХ" : "ПРОВАЛ";
                 document.getElementById('fb-header').style.color = opt.correct ? "var(--neon-green)" : "var(--neon-red)";
                 document.getElementById('fb-desc').innerText = opt.feedback;
-                
                 document.getElementById('feedback-screen').classList.remove('hidden');
                 setTimeout(() => { this.isBusy = false; }, 500);
-
                 if (this.state.health <= 0) setTimeout(() => this.finish(false), 2000);
             },
             resolveLevel() { 
@@ -661,48 +629,50 @@
                 this.state.health = Math.max(0, this.state.health + v);
                 const fill = document.getElementById('health-bar-fill');
                 fill.style.width = this.state.health + "%";
-                if(this.state.health < 30) fill.style.background = 'var(--neon-red)';
-                else fill.style.background = 'var(--neon-green)';
+                fill.style.background = this.state.health < 30 ? 'var(--neon-red)' : 'var(--neon-green)';
             },
             log(msg, type='info') {
                 const logs = document.getElementById('side-menu');
-                const d = document.createElement('div');
-                d.className = `log-entry log-${type}`;
-                d.innerText = `> ${msg}`;
-                logs.prepend(d);
+                if(logs) {
+                    const d = document.createElement('div');
+                    d.className = `log-entry log-${type}`;
+                    d.innerText = `> ${msg}`;
+                    logs.prepend(d);
+                }
             },
             finish(isWin) {
                 this.hideAllOverlays();
-                
-                // Финальное видео: win.mp4 или lose.mp4
                 const v = document.getElementById('video-layer');
                 const sim = document.getElementById('sim-layer');
+                v.pause();
                 v.src = isWin ? "win.mp4" : "lose.mp4";
-                v.muted = false; v.volume = 1.0;
-                v.style.display = 'block';
-                v.classList.add('playing');
-                sim.classList.add('fade-out');
+                v.load();
                 
-                v.play().catch(e => console.log("Final video failed"));
-                
-                // Показываем экран конца только после видео
-                v.onended = () => {
-                    window.Sound.play(isWin ? 'success' : 'error');
-                    const scr = document.getElementById('end-screen');
-                    scr.classList.remove('hidden');
-                    document.getElementById('end-title').innerText = isWin ? "МИССИЯ ВЫПОЛНЕНА" : "КРИТИЧЕСКИЙ СБОЙ";
-                    document.getElementById('end-title').style.color = isWin ? "var(--neon-green)" : "var(--neon-red)";
-                    document.getElementById('end-score').innerText = `${this.state.score}`;
+                const onFinishReady = () => {
+                    v.play().catch(e => this.showFinalScreen(isWin));
+                    v.classList.add('playing');
+                    sim.classList.add('fade-out');
+                    v.removeEventListener('canplaythrough', onFinishReady);
                 };
-                // Если видео не пошло, сразу показываем экран
-                v.onerror = v.onended;
-
+                v.addEventListener('canplaythrough', onFinishReady);
+                
+                v.onended = () => this.showFinalScreen(isWin);
+                v.onerror = () => this.showFinalScreen(isWin);
+                
                 if(window.Stats) window.Stats.save({
                     date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                     user: this.state.user,
                     score: this.state.score,
                     status: isWin ? 'WIN' : 'FAIL'
                 });
+            },
+            showFinalScreen(isWin) {
+                window.Sound.play(isWin ? 'success' : 'error');
+                const scr = document.getElementById('end-screen');
+                scr.classList.remove('hidden');
+                document.getElementById('end-title').innerText = isWin ? "МИССИЯ ВЫПОЛНЕНА" : "КРИТИЧЕСКИЙ СБОЙ";
+                document.getElementById('end-title').style.color = isWin ? "var(--neon-green)" : "var(--neon-red)";
+                document.getElementById('end-score').innerText = `${this.state.score}`;
             },
             hideAllOverlays() { document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden')); },
             toggleScreen(id, show) { const el = document.getElementById(id); show ? el.classList.remove('hidden') : el.classList.add('hidden'); }
