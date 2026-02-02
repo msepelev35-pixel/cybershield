@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>Миссия: Киберщит | Adaptive System</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
@@ -22,8 +22,8 @@
             background-image: radial-gradient(circle at 50% 50%, #1a2a3a 0%, #000 100%);
             color: white;
             font-family: 'Orbitron', sans-serif;
-            overflow: hidden;
-            height: 100dvh; /* Dynamic viewport height */
+            overflow: hidden; /* Основной скролл страницы скрыт, скроллим блоки */
+            height: 100dvh; /* Dynamic viewport height для мобилок */
             width: 100vw;
             display: flex;
             align-items: center;
@@ -35,15 +35,15 @@
             display: flex;
             width: 100%;
             height: 100%;
-            max-width: 1600px; /* Ограничение для очень больших экранов */
+            max-width: 100%;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); /* Учет вырезов */
             transition: all 0.3s ease;
-            padding: 10px;
-            gap: 15px;
+            gap: 10px;
         }
 
         /* --- ЛОГИ (ТЕРМИНАЛ) --- */
         #system-logs {
-            flex: 1; /* По умолчанию занимает 1 часть ширины */
+            flex: 1; 
             background: rgba(0, 0, 0, 0.95);
             border: 1px solid #333; 
             border-left: 4px solid var(--neon-blue);
@@ -55,12 +55,12 @@
             display: flex; 
             flex-direction: column-reverse;
             text-shadow: 0 0 5px var(--neon-blue); 
-            border-radius: 10px;
-            min-width: 0; /* Важно для Flexbox */
+            min-width: 200px;
             transition: all 0.3s ease;
+            z-index: 5;
         }
         
-        /* Класс для скрытия терминала по кнопке */
+        /* Класс для скрытия терминала */
         #system-logs.collapsed {
             display: none;
         }
@@ -72,12 +72,11 @@
 
         /* --- ИГРОВОЙ ЭКРАН --- */
         #game-viewport {
-            flex: 3; /* По умолчанию занимает 3 части ширины */
+            flex: 3; 
             position: relative; 
             background: #000;
-            border: 2px solid var(--neon-blue); 
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+            border: 1px solid var(--neon-blue); 
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
             overflow: hidden; 
             display: flex; 
             flex-direction: column;
@@ -109,27 +108,27 @@
         #hud {
             position: absolute; top: 0; left: 0; right: 0;
             padding: 10px; display: flex; justify-content: space-between;
-            z-index: 20; text-transform: uppercase; font-size: 0.8rem; pointer-events: none;
+            z-index: 20; text-transform: uppercase; font-size: 0.75rem; pointer-events: none;
+            width: 100%;
         }
-        .hud-left, .hud-right { display: flex; gap: 10px; pointer-events: auto; }
+        .hud-left, .hud-right { display: flex; gap: 5px; pointer-events: auto; align-items: center; }
         
         .hud-item {
             background: rgba(0,0,0,0.8); border: 1px solid var(--neon-blue);
-            padding: 5px 10px; border-radius: 6px;
-            display: flex; align-items: center; gap: 8px; backdrop-filter: blur(4px);
+            padding: 4px 8px; border-radius: 4px;
+            display: flex; align-items: center; gap: 5px; backdrop-filter: blur(4px);
             white-space: nowrap;
         }
         
-        /* Кнопка переключения терминала */
         .toggle-term-btn {
             background: rgba(0, 50, 100, 0.8); border: 1px solid #fff; color: #fff;
-            cursor: pointer; font-size: 1.2rem; padding: 0 10px; border-radius: 6px;
+            cursor: pointer; font-size: 1rem; padding: 4px 8px; border-radius: 4px;
             display: flex; align-items: center; justify-content: center;
             transition: 0.2s;
         }
-        .toggle-term-btn:active { transform: scale(0.9); background: #fff; color: #000; }
+        .toggle-term-btn:active { transform: scale(0.95); }
 
-        #health-bar-container { width: 60px; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+        #health-bar-container { width: 50px; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
         #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; }
 
         /* --- UI OVERLAYS (ЭКРАНЫ) --- */
@@ -138,22 +137,30 @@
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 30;
-            text-align: center; padding: 20px; transition: opacity 0.3s;
+            text-align: center; padding: 15px; 
+            overflow-y: auto; /* Разрешаем скролл внутри меню если экран маленький */
         }
+        
+        /* Контейнер внутри оверлея, чтобы контент центрировался но скроллился */
+        .overlay-content {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; min-height: 100%; /* Растягиваем на высоту */
+        }
+
         .hidden { opacity: 0; pointer-events: none; display: none !important; }
 
-        h1 { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0 0 10px 0; font-size: clamp(1.5rem, 5vw, 2.5rem); line-height: 1.1; }
-        h2 { color: #ccc; font-size: clamp(0.8rem, 3vw, 1.2rem); max-width: 600px; margin-bottom: 25px; }
+        h1 { color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin: 0 0 10px 0; font-size: clamp(1.5rem, 6vw, 2.2rem); line-height: 1.1; }
+        h2 { color: #ccc; font-size: clamp(0.9rem, 4vw, 1.2rem); max-width: 600px; margin-bottom: 20px; }
         
         /* КНОПКИ */
         .btn {
             background: rgba(0, 243, 255, 0.1); color: var(--neon-blue);
-            border: 1px solid var(--neon-blue); padding: 12px 25px;
-            font-family: 'Orbitron', sans-serif; font-size: 1rem;
+            border: 1px solid var(--neon-blue); padding: 12px 20px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.95rem;
             cursor: pointer; transition: 0.2s; text-transform: uppercase;
-            margin: 8px; position: relative; overflow: hidden;
-            border-radius: 4px; user-select: none; min-width: 150px;
-            touch-action: manipulation;
+            margin: 6px; position: relative; overflow: hidden;
+            border-radius: 4px; user-select: none; min-width: 140px;
+            touch-action: manipulation; /* Улучшает отклик на тач */
         }
         .btn:active { transform: scale(0.96); background: var(--neon-blue); color: #000; }
         .btn-danger { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255, 0, 60, 0.1); }
@@ -162,12 +169,12 @@
         .info-card {
             background: rgba(0,0,0,0.6); border-left: 4px solid var(--neon-blue);
             padding: 15px; text-align: left; max-width: 600px; margin-bottom: 20px;
-            font-size: 0.95rem; line-height: 1.4; width: 100%;
+            font-size: 0.9rem; line-height: 1.4; width: 100%;
         }
 
         /* --- ADMIN PANEL --- */
         #admin-panel {
-            width: 95%; max-width: 800px; max-height: 70%;
+            width: 100%; max-width: 800px; max-height: 60vh;
             background: rgba(0,0,0,0.95); border: 1px solid #444;
             overflow-y: auto; text-align: left; padding: 10px;
             font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;
@@ -179,59 +186,60 @@
         .status-fail { color: var(--neon-red); }
 
         /* =========================================
-           АДАПТИВНАЯ ЛОГИКА (ОРИЕНТАЦИЯ)
+           АДАПТИВНАЯ ЛОГИКА (БЕЗ ПРИНУЖДЕНИЯ)
            ========================================= */
-        
+
         /* 1. ПОРТРЕТНЫЙ РЕЖИМ (ТЕЛЕФОН ВЕРТИКАЛЬНО) */
         @media (orientation: portrait) {
             #main-wrapper {
-                flex-direction: column; /* Сверху вниз */
-                padding: 0;
-                gap: 0;
+                flex-direction: column; 
+                padding: 0; gap: 0;
             }
 
             #game-viewport {
-                flex: 65; /* Игра занимает 65% высоты */
-                border-radius: 0;
+                flex: 1; /* Занимает всё свободное место */
+                width: 100%;
                 border: none;
-                border-bottom: 2px solid var(--neon-blue);
+                border-bottom: 1px solid var(--neon-blue);
+                order: 1; /* Игра сверху */
             }
 
             #system-logs {
-                flex: 35; /* Терминал 35% */
-                border-radius: 0;
+                height: 25vh; /* Фиксированная высота терминала снизу */
+                flex: none; /* Отменяем flex-grow */
+                width: 100%;
                 border: none;
-                font-size: 0.75rem;
+                border-top: 1px solid #333;
+                order: 2; /* Логи снизу */
+            }
+
+            #system-logs.collapsed {
+                display: none;
             }
             
-            /* Если терминал скрыт, игра на весь экран */
-            #system-logs.collapsed + #game-viewport {
-                flex: 100;
-                border-bottom: none;
-            }
-            
-            /* Кнопки на весь экран в портрете */
-            .btn { width: 90%; }
+            /* Кнопки на весь экран для удобства пальцев */
+            .btn { width: 90%; max-width: 400px; }
+            h1 { margin-top: 20px; }
         }
 
         /* 2. ЛАНДШАФТНЫЙ РЕЖИМ (ТЕЛЕФОН ГОРИЗОНТАЛЬНО / ПК) */
         @media (orientation: landscape) {
             #main-wrapper {
-                flex-direction: row; /* Слева направо */
+                flex-direction: row;
             }
 
-            /* На маленьких экранах (мобильный ландшафт) */
-            @media (max-height: 500px) {
+            /* Если высота маленькая (телефон горизонтально) */
+            @media (max-height: 600px) {
                  #main-wrapper { padding: 0; gap: 0; }
-                 #game-viewport { border-radius: 0; border: none; }
+                 #game-viewport { border: none; }
                  #system-logs { 
                      font-size: 0.7rem; 
-                     max-width: 200px; /* Узкий терминал слева */
+                     width: 25vw; /* 25% ширины под логи */
+                     min-width: 150px;
                      border: none;
                      border-right: 1px solid #333;
                  }
-                 h1 { font-size: 1.5rem; }
-                 .btn { padding: 8px 20px; font-size: 0.9rem; margin: 4px; }
+                 .btn { padding: 8px 15px; font-size: 0.85rem; margin: 4px; }
                  #hud { padding: 5px; }
             }
         }
@@ -243,7 +251,7 @@
     <audio id="sfx-hover" src="click.mp3"></audio>
 
     <div id="main-wrapper">
-        <!-- ТЕРМИНАЛ (Теперь можно скрыть) -->
+        <!-- ТЕРМИНАЛ (Можно скрыть) -->
         <div id="system-logs">
             <div class="log-entry log-info">> Система активна...</div>
             <div class="log-entry log-info">> Ожидание ввода...</div>
@@ -251,13 +259,13 @@
 
         <!-- ИГРОВОЕ ОКНО -->
         <div id="game-viewport">
-            <video id="video-layer" playsinline></video>
+            <video id="video-layer" playsinline muted></video> <!-- muted для автоплей на мобильных -->
             <div id="sim-layer"><div class="loader-ring"></div><h2 style="margin-top:20px" id="sim-text">ЗАГРУЗКА...</h2></div>
 
-            <!-- HUD с кнопкой переключения -->
+            <!-- HUD -->
             <div id="hud" class="hidden">
                 <div class="hud-left">
-                    <button class="toggle-term-btn" onclick="window.UI.toggleTerminal()" title="Вкл/Выкл Терминал">💻</button>
+                    <button class="toggle-term-btn" onclick="window.UI.toggleTerminal()" title="Терминал">💻</button>
                     <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div> <span id="health-val">100%</span></div>
                 </div>
                 
@@ -269,63 +277,75 @@
 
             <!-- START SCREEN -->
             <div id="start-screen" class="overlay">
-                <h1>CYBERSHIELD 3.1</h1>
-                <h2 style="color: var(--neon-green)">ADAPTIVE SYSTEM</h2>
-                
-                <input type="text" id="username-input" placeholder="ИМЯ ПИЛОТА" maxlength="12"
-                       style="background: rgba(255,255,255,0.1); border: 1px solid #555; padding: 12px; color: white; font-family: inherit; margin-bottom: 15px; text-align: center; width: 250px; font-size: 1.2rem; border-radius: 5px; outline: none;">
-                
-                <div style="display: flex; flex-direction: column; width: 100%; max-width: 300px; align-items: center;">
-                    <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК</button>
-                    <button class="btn" style="border-color: #444; color: #aaa; font-size: 0.9rem;" onclick="window.Stats.show()">📊 БАЗА ДАННЫХ</button>
+                <div class="overlay-content">
+                    <h1>CYBERSHIELD 3.1</h1>
+                    <h2 style="color: var(--neon-green)">ADAPTIVE SYSTEM</h2>
+                    
+                    <input type="text" id="username-input" placeholder="ИМЯ ПИЛОТА" maxlength="12"
+                           style="background: rgba(255,255,255,0.1); border: 1px solid #555; padding: 12px; color: white; font-family: inherit; margin-bottom: 15px; text-align: center; width: 250px; font-size: 1.2rem; border-radius: 5px; outline: none;">
+                    
+                    <div style="display: flex; flex-direction: column; width: 100%; max-width: 300px; align-items: center;">
+                        <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК</button>
+                        <button class="btn" style="border-color: #444; color: #aaa; font-size: 0.9rem;" onclick="window.Stats.show()">📊 БАЗА ДАННЫХ</button>
+                    </div>
                 </div>
             </div>
 
             <!-- STATS SCREEN -->
             <div id="stats-screen" class="overlay hidden">
-                <h1>АРХИВ</h1>
-                <div id="admin-panel">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem;">
-                        <span id="connection-status" style="color:#666">⚫ OFFLINE</span>
-                        <span>ЗАПИСЕЙ: <b id="stat-total">0</b></span>
+                <div class="overlay-content">
+                    <h1>АРХИВ</h1>
+                    <div id="admin-panel">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.8rem;">
+                            <span id="connection-status" style="color:#666">⚫ OFFLINE</span>
+                            <span>ЗАПИСЕЙ: <b id="stat-total">0</b></span>
+                        </div>
+                        <table id="stats-table">
+                            <thead><tr><th>TIME</th><th>USER</th><th>SCR</th><th>STS</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table id="stats-table">
-                        <thead><tr><th>TIME</th><th>USER</th><th>SCR</th><th>STS</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div style="margin-top: 15px; display: flex; gap: 10px;">
-                    <button class="btn" onclick="window.Stats.hide()">НАЗАД</button>
-                    <button class="btn btn-danger" onclick="window.Stats.clearLocal()">CLEAR</button>
+                    <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <button class="btn" onclick="window.Stats.hide()">НАЗАД</button>
+                        <button class="btn btn-danger" onclick="window.Stats.clearLocal()">CLEAR</button>
+                    </div>
                 </div>
             </div>
 
             <!-- GAME SCREENS -->
             <div id="edu-screen" class="overlay hidden">
-                <h1 style="color: #ffcc00">⚠ УГРОЗА</h1>
-                <div class="info-card">
-                    <div class="info-title" id="edu-title">ТИП</div>
-                    <div id="edu-text">...</div>
+                <div class="overlay-content">
+                    <h1 style="color: #ffcc00">⚠ УГРОЗА</h1>
+                    <div class="info-card">
+                        <div class="info-title" id="edu-title">ТИП</div>
+                        <div id="edu-text">...</div>
+                    </div>
+                    <button class="btn" onclick="window.Game.nextStep()">ПОНЯЛ</button>
                 </div>
-                <button class="btn" onclick="window.Game.nextStep()">ПОНЯЛ</button>
             </div>
 
             <div id="choice-screen" class="overlay hidden">
-                <h1 id="choice-header">ЗАПРОС</h1>
-                <p id="choice-desc" style="margin-bottom: 20px; padding: 0 10px;">...</p>
-                <div id="choice-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; width: 100%;"></div>
+                <div class="overlay-content">
+                    <h1 id="choice-header">ЗАПРОС</h1>
+                    <p id="choice-desc" style="margin-bottom: 20px; padding: 0 10px;">...</p>
+                    <div id="choice-buttons" style="display: flex; flex-wrap: wrap; justify-content: center; width: 100%;"></div>
+                </div>
             </div>
 
             <div id="feedback-screen" class="overlay hidden">
-                <h1 id="fb-header">ИТОГ</h1>
-                <p id="fb-desc" style="max-width: 500px; margin-bottom: 20px; padding: 0 10px;">...</p>
-                <button class="btn" onclick="window.Game.resolveLevel()">ДАЛЕЕ</button>
+                <div class="overlay-content">
+                    <h1 id="fb-header">ИТОГ</h1>
+                    <p id="fb-desc" style="max-width: 500px; margin-bottom: 20px; padding: 0 10px;">...</p>
+                    <button class="btn" onclick="window.Game.resolveLevel()">ДАЛЕЕ</button>
+                </div>
             </div>
 
             <div id="end-screen" class="overlay hidden">
-                <h1 id="end-title">КОНЕЦ</h1>
-                <h2 id="end-score" style="font-size: 2rem; color: white;">0</h2>
-                <button class="btn" onclick="location.reload()">МЕНЮ</button>
+                <div class="overlay-content">
+                    <h1 id="end-title">КОНЕЦ</h1>
+                    <h2 id="end-score" style="font-size: 2rem; color: white;">0</h2>
+                    <button class="btn" onclick="location.reload()">МЕНЮ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -471,7 +491,15 @@
                 const sim = document.getElementById('sim-layer');
                 v.style.display = 'block'; sim.style.display = 'none';
                 v.src = s.src;
-                v.play().catch(() => { v.style.display='none'; sim.style.display='flex'; document.getElementById('sim-text').innerText=s.simText; setTimeout(()=>this.nextStep(),2500); });
+                // Автовоспроизведение на мобильных требует mute или взаимодействия.
+                // Добавим muted в тег video на всякий случай, если звук не критичен.
+                v.play().catch((e) => { 
+                    console.log("Autoplay blocked, falling back to sim", e);
+                    v.style.display='none'; 
+                    sim.style.display='flex'; 
+                    document.getElementById('sim-text').innerText=s.simText; 
+                    setTimeout(()=>this.nextStep(),2500); 
+                });
                 v.onended = () => this.nextStep();
                 v.onerror = () => v.onended();
             },
