@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Pro Final</title>
+    <title>Миссия: Киберщит | Final Stable</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- PRO STYLES --- */
+        /* --- СТИЛИ (ВОССТАНОВЛЕНЫ ИЗ РАБОЧЕЙ ВЕРСИИ) --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
@@ -35,6 +35,7 @@
             width: 100%; height: 100%; z-index: 10;
         }
         
+        /* Ловушка для клика (чтобы закрывать меню кликом по экрану) */
         #click-trap {
             position: absolute; inset: 0; z-index: 45; 
             display: none; background: rgba(0,0,0,0.4); 
@@ -42,7 +43,6 @@
         }
         #click-trap.active { display: block; }
 
-        /* ЭФФЕКТЫ */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: 
@@ -52,7 +52,6 @@
             pointer-events: none; z-index: 15;
         }
 
-        /* ВИДЕО (ПОЛНЫЙ ЭКРАН) */
         video { 
             width: 100%; height: 100%; object-fit: cover; 
             display: none; opacity: 0; transition: opacity 0.5s; 
@@ -60,7 +59,6 @@
         }
         video.playing { opacity: 1; display: block; }
 
-        /* ЗАГЛУШКА */
         #sim-layer {
             position: absolute; inset: 0; display: flex;
             flex-direction: column; justify-content: center; align-items: center;
@@ -87,7 +85,6 @@
         }
         @keyframes pulse { 0% {opacity: 0.5;} 100% {opacity: 1;} }
 
-        /* МЕНЮ */
         #side-menu {
             position: absolute; background: rgba(8, 12, 18, 0.98); border: 1px solid #333; 
             border-left: 3px solid var(--neon-blue); padding: 15px; 
@@ -107,7 +104,6 @@
         }
         .close-menu-btn:hover { color: #fff; }
 
-        /* HUD */
         #hud {
             position: absolute; top: 0; left: 0; right: 0; padding: 15px;
             display: flex; justify-content: space-between; z-index: 500;
@@ -131,7 +127,6 @@
         #health-bar-container { width: 80px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
         #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; box-shadow: 0 0 8px var(--neon-green); }
 
-        /* OVERLAYS */
         .overlay {
             position: absolute; inset: 0; background: var(--glass); 
             backdrop-filter: blur(12px); display: flex; flex-direction: column;
@@ -173,7 +168,7 @@
             box-shadow: 0 0 25px var(--neon-blue); white-space: nowrap; text-transform: uppercase;
         }
 
-        /* --- АДАПТИВНОСТЬ --- */
+        /* --- АДАПТИВНОСТЬ (ВОССТАНОВЛЕНА) --- */
         @media (orientation: portrait) {
             #main-wrapper { flex-direction: column; }
             #side-menu { 
@@ -242,7 +237,7 @@
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
-                    <h2>PRO EDITION</h2>
+                    <h2>STABLE EDITION</h2>
                     <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="12"
                            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 15px; color: white; font-family: inherit; margin-bottom: 30px; text-align: center; width: 280px; font-size: 1.2rem; border-radius: 6px; outline: none; letter-spacing: 2px; text-transform: uppercase;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК СИСТЕМЫ</button>
@@ -250,6 +245,7 @@
                 </div>
             </div>
 
+            <!-- OTHER SCREENS... -->
             <div id="stats-screen" class="overlay hidden">
                 <div class="overlay-content">
                     <h1>АРХИВ МИССИЙ</h1>
@@ -413,7 +409,9 @@
                     const r = el.requestFullscreen || el.webkitRequestFullscreen;
                     if (r) {
                         r.call(el).then(() => {
-                            if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
+                            if (screen.orientation && screen.orientation.lock) {
+                                screen.orientation.lock('landscape').catch(e => {});
+                            }
                             this.showToast("ПОВЕРНИТЕ УСТРОЙСТВО");
                         }).catch(e => console.log("FS Blocked"));
                     }
@@ -432,7 +430,7 @@
         document.addEventListener('fullscreenchange', window.UI.syncIcon);
         document.addEventListener('webkitfullscreenchange', window.UI.syncIcon);
 
-        // --- SCENARIOS ---
+        // --- SCENARIOS (FIXED: NO DUPLICATE WIN) ---
         const SCENARIOS = [
             { id: "intro", type: "video", src: "intro.mp4", simText: "ИНИЦИАЛИЗАЦИЯ...", log: "Запуск протокола защиты..." },
             { id: "ai_scan", type: "video", src: "ai_scan.mp4", simText: "СКАНИРОВАНИЕ...", log: "Анализ уязвимостей..." },
@@ -592,7 +590,7 @@
                 v.src = isWin ? "win.mp4" : "lose.mp4"; 
                 v.load();
                 
-                const showEnd = () => {
+                const onEnd = () => {
                     window.Sound.play(isWin ? 'success' : 'error');
                     const scr = document.getElementById('end-screen');
                     scr.classList.remove('hidden');
@@ -617,11 +615,11 @@
                     v.play().then(() => {
                          v.classList.add('playing');
                          sim.classList.add('fade-out');
-                    }).catch(() => showEnd()); // Если совсем никак - финиш
+                    }).catch(() => onEnd()); // Если совсем никак - финиш
                 });
                 
-                v.onended = showEnd;
-                v.onerror = showEnd;
+                v.onended = onEnd;
+                v.onerror = onEnd;
             },
             hideAllOverlays() { document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden')); },
             toggleScreen(id, show) { const el = document.getElementById(id); show ? el.classList.remove('hidden') : el.classList.add('hidden'); }
