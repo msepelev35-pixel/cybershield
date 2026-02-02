@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Universal</title>
+    <title>Миссия: Киберщит | Platinum</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- UNIVERSAL STYLES (Mobile + Desktop) --- */
+        /* --- PLATINUM STYLES --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
             --neon-red: #ff003c;
             --bg-color: #050505;
-            --glass: rgba(12, 20, 35, 0.95);
+            --glass: rgba(12, 20, 35, 0.96);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
@@ -51,21 +51,22 @@
             z-index: 10;
         }
         
-        /* Кликабельная зона для закрытия меню на ПК */
+        /* СЛОЙ-ЛОВУШКА ДЛЯ КЛИКА (Чтобы закрывать меню кликом по фону) */
         #click-trap {
             position: absolute; inset: 0;
-            z-index: 45; /* Под меню (50), но над игрой (10) */
+            z-index: 45; 
             display: none;
-            background: rgba(0,0,0,0.3); /* Легкое затемнение */
-            backdrop-filter: blur(2px);
+            background: rgba(0,0,0,0.4); 
+            backdrop-filter: blur(3px);
             transition: opacity 0.3s;
+            cursor: pointer;
         }
         #click-trap.active { display: block; }
 
         /* Виньетка */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
-            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.6) 100%);
+            background: radial-gradient(circle, transparent 55%, rgba(0,0,0,0.7) 100%);
             pointer-events: none; z-index: 15;
         }
 
@@ -76,7 +77,7 @@
             will-change: transform;
         }
 
-        /* --- ЗАГЛУШКА (РАДАР) --- */
+        /* --- ЗАГЛУШКА --- */
         #sim-layer {
             position: absolute; inset: 0; display: none;
             flex-direction: column; justify-content: center; align-items: center;
@@ -85,12 +86,12 @@
         }
         
         .radar {
-            width: 150px; height: 150px;
+            width: 160px; height: 160px;
             border: 2px solid rgba(0, 243, 255, 0.4);
             border-radius: 50%;
             position: relative;
             background: repeating-radial-gradient(transparent 0, transparent 28px, rgba(0, 243, 255, 0.05) 30px);
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
             margin-bottom: 30px;
         }
         .radar::before {
@@ -111,10 +112,11 @@
         }
         @keyframes pulse { 0% {opacity: 0.5;} 100% {opacity: 1;} }
 
-        /* --- UI: МЕНЮ (LOGS) --- */
-        #system-logs {
+        /* --- UI: БОКОВОЕ МЕНЮ (Side Menu) --- */
+        /* Используем новое имя ID, чтобы блокировщики не трогали */
+        #side-menu {
             position: absolute;
-            background: rgba(10, 15, 20, 0.98);
+            background: rgba(10, 15, 25, 0.98);
             border: 1px solid #444; 
             border-left: 4px solid var(--neon-blue);
             padding: 15px; 
@@ -124,9 +126,9 @@
             overflow-y: auto; 
             display: flex; 
             flex-direction: column-reverse;
-            z-index: 50; 
-            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            z-index: 1000; /* Самый верхний слой */
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
         }
         
         .log-entry { 
@@ -136,20 +138,21 @@
         .log-warn { color: var(--neon-red); }
         .log-success { color: var(--neon-green); }
 
-        /* Внутренняя кнопка закрытия меню (для ПК удобно) */
-        .close-logs-internal {
-            position: absolute; top: 5px; right: 5px;
-            color: #666; cursor: pointer; padding: 5px;
-            font-size: 1.2rem; display: none; /* Показываем JS-ом или CSS */
+        /* Внутренняя кнопка закрытия */
+        .close-menu-btn {
+            position: absolute; top: 10px; right: 10px;
+            color: #888; cursor: pointer; padding: 5px;
+            font-size: 1.5rem; display: block;
+            transition: color 0.2s;
         }
-        #system-logs:not(.collapsed) .close-logs-internal { display: block; }
+        .close-menu-btn:hover { color: #fff; }
 
         /* --- HUD --- */
         #hud {
             position: absolute; top: 0; left: 0; right: 0;
             padding: 15px; 
             display: flex; justify-content: space-between;
-            z-index: 60; 
+            z-index: 500; 
             font-size: 0.85rem; font-weight: bold;
             pointer-events: none; 
             background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
@@ -158,7 +161,7 @@
         .hud-left, .hud-right { display: flex; gap: 12px; pointer-events: auto; align-items: center; }
         
         .hud-item {
-            background: rgba(0,0,0,0.5); 
+            background: rgba(0,0,0,0.6); 
             border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 8px 14px; border-radius: 40px; 
             display: flex; align-items: center; gap: 8px; 
@@ -169,13 +172,13 @@
         
         .icon-btn {
             background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff;
-            cursor: pointer; font-size: 1.2rem; padding: 0; border-radius: 50%;
+            cursor: pointer; font-size: 1.4rem; padding: 0; border-radius: 50%;
             width: 48px; height: 48px;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.2s ease;
             touch-action: manipulation;
         }
-        .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); } /* Hover для ПК */
+        .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); } 
         .icon-btn:active { transform: scale(0.9); background: var(--neon-blue); color: #000; border-color: var(--neon-blue); }
 
         #health-bar-container { width: 80px; height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; }
@@ -187,7 +190,7 @@
             background: var(--glass); 
             backdrop-filter: blur(15px);
             display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 100;
+            justify-content: center; align-items: center; z-index: 2000;
             text-align: center; padding: 20px; 
             opacity: 1;
             transition: opacity 0.3s ease, visibility 0.3s;
@@ -220,7 +223,7 @@
             touch-action: manipulation;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
-        .btn:hover { background: rgba(0, 243, 255, 0.1); box-shadow: 0 8px 20px rgba(0,243,255,0.2); } /* Hover для ПК */
+        .btn:hover { background: rgba(0, 243, 255, 0.1); box-shadow: 0 8px 20px rgba(0,243,255,0.2); }
         .btn:active { transform: scale(0.95); background: var(--neon-blue); color: #000; box-shadow: 0 0 30px var(--neon-blue); }
         
         .btn-danger { 
@@ -247,7 +250,7 @@
             position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
             background: var(--neon-blue); color: #000;
             padding: 12px 30px; border-radius: 50px; font-weight: 800; font-size: 0.9rem;
-            opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 200;
+            opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 3000;
             box-shadow: 0 0 25px var(--neon-blue);
             white-space: nowrap; text-transform: uppercase; letter-spacing: 1px;
         }
@@ -257,28 +260,28 @@
         /* ПОРТРЕТ */
         @media (orientation: portrait) {
             #main-wrapper { flex-direction: column; }
-            #system-logs { 
+            #side-menu { 
                 bottom: 0; left: 0; right: 0; height: 40vh; 
                 border-top: 2px solid var(--neon-blue); border-left: none; 
                 border-radius: 20px 20px 0 0;
                 transform: translateY(0); /* Открыто */
             }
-            #system-logs.collapsed { transform: translateY(100%); }
+            #side-menu.collapsed { transform: translateY(105%); } /* Спрятано с запасом */
             .btn { width: 90%; }
             #hud { padding-top: max(20px, env(safe-area-inset-top)); }
         }
 
-        /* ЛАНДШАФТ (Ноутбуки и телефоны горизонтально) */
+        /* ЛАНДШАФТ (ПК и телефон горизонтально) */
         @media (orientation: landscape) {
             #main-wrapper { padding: 0 !important; }
             #game-viewport { width: 100vw; height: 100vh; }
             
-            #system-logs { 
-                top: 0; bottom: 0; left: 0; width: 320px; 
+            #side-menu { 
+                top: 0; bottom: 0; left: 0; width: 340px; 
                 border-right: 2px solid var(--neon-blue); border-left: none; 
                 transform: translateX(0); /* Открыто */
             }
-            #system-logs.collapsed { transform: translateX(-100%); }
+            #side-menu.collapsed { transform: translateX(-105%); } /* Спрятано с запасом */
             
             .overlay-content { flex-direction: column; }
             #choice-buttons { flex-direction: row; }
@@ -296,13 +299,13 @@
         <!-- Невидимый слой-ловушка для клика (чтобы закрывать меню кликом по экрану) -->
         <div id="click-trap" onclick="window.UI.toggleTerminal()"></div>
 
-        <!-- Меню с логами -->
-        <div id="system-logs" class="collapsed">
-            <!-- Внутренний крестик для закрытия -->
-            <div class="close-logs-internal" onclick="window.UI.toggleTerminal()">✕</div>
-            <div class="log-entry log-info">> Загрузка ядра системы...</div>
+        <!-- МЕНЮ (ПЕРЕИМЕНОВАНО ДЛЯ ЗАЩИТЫ ОТ БЛОКИРОВЩИКОВ) -->
+        <div id="side-menu" class="collapsed">
+            <!-- Крестик использует безопасный код \u2715 -->
+            <div class="close-menu-btn" onclick="window.UI.toggleTerminal()">&#10005;</div>
+            <div class="log-entry log-info">> Загрузка ядра системы v3.5...</div>
             <div class="log-entry log-info">> Проверка безопасности... OK</div>
-            <div class="log-entry log-info">> Ожидание авторизации пилота...</div>
+            <div class="log-entry log-info">> Ожидание авторизации...</div>
         </div>
 
         <div id="game-viewport">
@@ -315,9 +318,10 @@
 
             <div id="hud" class="hidden">
                 <div class="hud-left">
-                    <button class="icon-btn" id="btn-fullscreen" onclick="window.UI.toggleFullscreen()" title="На весь экран">⛶</button>
-                    <!-- Кнопка МЕНЮ -->
-                    <button class="icon-btn" id="btn-logs" onclick="window.UI.toggleTerminal()" title="Логи">☰</button>
+                    <!-- Иконка экрана использует безопасный код \u26F6 -->
+                    <button class="icon-btn" id="btn-fullscreen" onclick="window.UI.toggleFullscreen()" title="На весь экран">&#9974;</button>
+                    <!-- Иконка меню использует безопасный код \u2630 -->
+                    <button class="icon-btn" id="btn-logs" onclick="window.UI.toggleTerminal()" title="Логи">&#9776;</button>
                     <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div></div>
                 </div>
                 <div class="hud-right">
@@ -330,7 +334,7 @@
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
-                    <h2>UNIVERSAL EDITION</h2>
+                    <h2>PLATINUM EDITION</h2>
                     <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="12"
                            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 15px; color: white; font-family: inherit; margin-bottom: 30px; text-align: center; width: 280px; font-size: 1.2rem; border-radius: 6px; outline: none; letter-spacing: 2px; text-transform: uppercase;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК СИСТЕМЫ</button>
@@ -397,7 +401,7 @@
         try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
         window.Stats = {
-            localKey: 'CYBERSHIELD_UNI_V1',
+            localKey: 'CYBERSHIELD_PLATINUM_V1',
             async save(record) {
                 const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
                 localData.push(record);
@@ -429,7 +433,7 @@
         };
 
         function logToTerminal(msg, type) {
-            const container = document.getElementById('system-logs');
+            const container = document.getElementById('side-menu');
             if(container) { const d = document.createElement('div'); d.className = `log-entry log-${type}`; d.innerText = `> ${msg}`; container.prepend(d); }
         }
     </script>
@@ -499,19 +503,19 @@
             },
             toggleTerminal() {
                 window.Sound.play('click');
-                const term = document.getElementById('system-logs');
+                const term = document.getElementById('side-menu');
                 const btn = document.getElementById('btn-logs');
                 const trap = document.getElementById('click-trap');
                 
                 term.classList.toggle('collapsed');
                 
-                // Умная логика кнопки и слоя-ловушки
+                // Используем unicode коды для безопасности кодировки
                 if (!term.classList.contains('collapsed')) {
-                    btn.innerText = "✕"; 
-                    trap.classList.add('active'); // Активируем слой клика по экрану
+                    btn.innerHTML = "&#10005;"; // Крестик
+                    trap.classList.add('active'); 
                 } else {
-                    btn.innerText = "☰"; 
-                    trap.classList.remove('active'); // Убираем слой
+                    btn.innerHTML = "&#9776;"; // Меню
+                    trap.classList.remove('active'); 
                 }
             },
             toggleFullscreen() {
@@ -522,8 +526,8 @@
                     const req = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
                     if (req) {
                         req.call(document.documentElement).then(() => {
-                            btn.innerText = "⤫";
-                            this.showToast("Поверните телефон горизонтально");
+                            btn.innerHTML = "&#10539;"; // Свернуть
+                            this.showToast("ПОВЕРНИТЕ УСТРОЙСТВО");
                             if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
                         }).catch(e => console.log(e));
                     }
@@ -531,7 +535,7 @@
                     const exit = document.exitFullscreen || document.webkitExitFullscreen;
                     if (exit) {
                         exit.call(document).then(() => {
-                            btn.innerText = "⛶";
+                            btn.innerHTML = "&#9974;"; // Развернуть
                             if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
                         });
                     }
@@ -570,7 +574,9 @@
                 
                 this.toggleScreen('start-screen', false);
                 document.getElementById('hud').classList.remove('hidden');
-                document.getElementById('btn-fullscreen').innerText = "⛶";
+                
+                // Сброс иконок на безопасные коды
+                document.getElementById('btn-fullscreen').innerHTML = "&#9974;";
                 
                 this.isBusy = false;
                 this.runStep();
@@ -670,7 +676,7 @@
                 else fill.style.background = 'var(--neon-green)';
             },
             log(msg, type='info') {
-                const logs = document.getElementById('system-logs');
+                const logs = document.getElementById('side-menu');
                 const d = document.createElement('div');
                 d.className = `log-entry log-${type}`;
                 d.innerText = `> ${msg}`;
