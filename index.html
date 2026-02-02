@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Platinum</title>
+    <title>Миссия: Киберщит | Diamond</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- PLATINUM STYLES --- */
+        /* --- DIAMOND STYLES --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
             --neon-red: #ff003c;
             --bg-color: #050505;
-            --glass: rgba(12, 20, 35, 0.96);
+            --glass: rgba(10, 18, 30, 0.96);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
@@ -51,7 +51,7 @@
             z-index: 10;
         }
         
-        /* СЛОЙ-ЛОВУШКА ДЛЯ КЛИКА (Чтобы закрывать меню кликом по фону) */
+        /* СЛОЙ-ЛОВУШКА ДЛЯ КЛИКА */
         #click-trap {
             position: absolute; inset: 0;
             z-index: 45; 
@@ -66,7 +66,7 @@
         /* Виньетка */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
-            background: radial-gradient(circle, transparent 55%, rgba(0,0,0,0.7) 100%);
+            background: radial-gradient(circle, transparent 55%, rgba(0,0,0,0.8) 100%);
             pointer-events: none; z-index: 15;
         }
 
@@ -91,7 +91,7 @@
             border-radius: 50%;
             position: relative;
             background: repeating-radial-gradient(transparent 0, transparent 28px, rgba(0, 243, 255, 0.05) 30px);
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
+            box-shadow: 0 0 60px rgba(0, 243, 255, 0.2);
             margin-bottom: 30px;
         }
         .radar::before {
@@ -100,7 +100,7 @@
             background: linear-gradient(45deg, transparent 50%, rgba(0, 243, 255, 0.9) 100%);
             transform-origin: 0 0;
             animation: radar-spin 1.5s linear infinite;
-            filter: drop-shadow(0 0 15px var(--neon-blue));
+            filter: drop-shadow(0 0 20px var(--neon-blue));
         }
         @keyframes radar-spin { 0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);} }
 
@@ -112,8 +112,7 @@
         }
         @keyframes pulse { 0% {opacity: 0.5;} 100% {opacity: 1;} }
 
-        /* --- UI: БОКОВОЕ МЕНЮ (Side Menu) --- */
-        /* Используем новое имя ID, чтобы блокировщики не трогали */
+        /* --- UI: БОКОВОЕ МЕНЮ --- */
         #side-menu {
             position: absolute;
             background: rgba(10, 15, 25, 0.98);
@@ -126,7 +125,7 @@
             overflow-y: auto; 
             display: flex; 
             flex-direction: column-reverse;
-            z-index: 1000; /* Самый верхний слой */
+            z-index: 1000; 
             transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
             box-shadow: 0 0 50px rgba(0,0,0,0.9);
         }
@@ -138,7 +137,6 @@
         .log-warn { color: var(--neon-red); }
         .log-success { color: var(--neon-green); }
 
-        /* Внутренняя кнопка закрытия */
         .close-menu-btn {
             position: absolute; top: 10px; right: 10px;
             color: #888; cursor: pointer; padding: 5px;
@@ -296,14 +294,14 @@
     <div id="toast">Инициализация...</div>
 
     <div id="main-wrapper">
-        <!-- Невидимый слой-ловушка для клика (чтобы закрывать меню кликом по экрану) -->
+        <!-- Невидимый слой-ловушка для клика -->
         <div id="click-trap" onclick="window.UI.toggleTerminal()"></div>
 
-        <!-- МЕНЮ (ПЕРЕИМЕНОВАНО ДЛЯ ЗАЩИТЫ ОТ БЛОКИРОВЩИКОВ) -->
+        <!-- МЕНЮ -->
         <div id="side-menu" class="collapsed">
-            <!-- Крестик использует безопасный код \u2715 -->
+            <!-- Крестик использует безопасный код -->
             <div class="close-menu-btn" onclick="window.UI.toggleTerminal()">&#10005;</div>
-            <div class="log-entry log-info">> Загрузка ядра системы v3.5...</div>
+            <div class="log-entry log-info">> Загрузка ядра системы v4.0...</div>
             <div class="log-entry log-info">> Проверка безопасности... OK</div>
             <div class="log-entry log-info">> Ожидание авторизации...</div>
         </div>
@@ -318,9 +316,7 @@
 
             <div id="hud" class="hidden">
                 <div class="hud-left">
-                    <!-- Иконка экрана использует безопасный код \u26F6 -->
                     <button class="icon-btn" id="btn-fullscreen" onclick="window.UI.toggleFullscreen()" title="На весь экран">&#9974;</button>
-                    <!-- Иконка меню использует безопасный код \u2630 -->
                     <button class="icon-btn" id="btn-logs" onclick="window.UI.toggleTerminal()" title="Логи">&#9776;</button>
                     <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div></div>
                 </div>
@@ -334,7 +330,7 @@
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
-                    <h2>PLATINUM EDITION</h2>
+                    <h2>DIAMOND EDITION</h2>
                     <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="12"
                            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 15px; color: white; font-family: inherit; margin-bottom: 30px; text-align: center; width: 280px; font-size: 1.2rem; border-radius: 6px; outline: none; letter-spacing: 2px; text-transform: uppercase;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК СИСТЕМЫ</button>
@@ -401,7 +397,7 @@
         try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
         window.Stats = {
-            localKey: 'CYBERSHIELD_PLATINUM_V1',
+            localKey: 'CYBERSHIELD_DIAMOND_V1',
             async save(record) {
                 const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
                 localData.push(record);
@@ -521,24 +517,44 @@
             toggleFullscreen() {
                 window.Sound.play('click');
                 const btn = document.getElementById('btn-fullscreen');
+                const doc = document.documentElement;
                 
-                if (!document.fullscreenElement) {
-                    const req = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
-                    if (req) {
-                        req.call(document.documentElement).then(() => {
-                            btn.innerHTML = "&#10539;"; // Свернуть
+                // Проверка текущего состояния
+                const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+
+                if (!isFullscreen) {
+                    // ENTER
+                    const request = doc.requestFullscreen || doc.webkitRequestFullscreen;
+                    if (request) {
+                        request.call(doc).then(() => {
+                            // Попытка заблокировать ориентацию
+                            if (screen.orientation && screen.orientation.lock) {
+                                screen.orientation.lock('landscape').catch(() => {
+                                    console.log("Orientation lock not supported");
+                                });
+                            }
                             this.showToast("ПОВЕРНИТЕ УСТРОЙСТВО");
-                            if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
-                        }).catch(e => console.log(e));
-                    }
-                } else {
-                    const exit = document.exitFullscreen || document.webkitExitFullscreen;
-                    if (exit) {
-                        exit.call(document).then(() => {
-                            btn.innerHTML = "&#9974;"; // Развернуть
-                            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+                        }).catch(err => {
+                            console.log("Fullscreen blocked:", err);
+                            this.showToast("НЕ УДАЛОСЬ РАЗВЕРНУТЬ");
                         });
                     }
+                } else {
+                    // EXIT
+                    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+                    if (exit) {
+                        exit.call(document).catch(err => console.log(err));
+                    }
+                }
+            },
+            // Автоматическое обновление иконки
+            updateFullscreenIcon() {
+                const btn = document.getElementById('btn-fullscreen');
+                const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+                if (isFullscreen) {
+                    btn.innerHTML = "&#10539;"; // Свернуть
+                } else {
+                    btn.innerHTML = "&#9974;"; // Развернуть
                 }
             }
         };
@@ -575,8 +591,10 @@
                 this.toggleScreen('start-screen', false);
                 document.getElementById('hud').classList.remove('hidden');
                 
-                // Сброс иконок на безопасные коды
-                document.getElementById('btn-fullscreen').innerHTML = "&#9974;";
+                // Слушатели для синхронизации кнопки экрана
+                document.addEventListener('fullscreenchange', window.UI.updateFullscreenIcon);
+                document.addEventListener('webkitfullscreenchange', window.UI.updateFullscreenIcon);
+                window.UI.updateFullscreenIcon();
                 
                 this.isBusy = false;
                 this.runStep();
