@@ -53,7 +53,6 @@
             z-index: 10;
         }
         
-        /* Скан-линии только в вертикальном режиме для стиля */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 255, 255, 0.02) 3px);
@@ -62,7 +61,7 @@
 
         video { 
             width: 100%; height: 100%; 
-            object-fit: cover; /* Заполняет экран без черных полос */
+            object-fit: cover; 
             display: none; 
         }
 
@@ -209,23 +208,20 @@
         /* 1. ПОРТРЕТ (ТЕЛЕФОН ВЕРТИКАЛЬНО) */
         @media (orientation: portrait) {
             #main-wrapper { flex-direction: column; }
-            /* Логи снизу */
             #system-logs { bottom: 0; left: 0; right: 0; height: 30vh; border-top: 2px solid var(--neon-blue); border-left: none; }
             .btn { width: 80%; }
             #hud { padding-top: max(10px, env(safe-area-inset-top)); }
         }
 
-        /* 2. ЛАНДШАФТ (КИНО-РЕЖИМ - АВТОМАТИЧЕСКИ) */
+        /* 2. ЛАНДШАФТ (КИНО-РЕЖИМ) - Срабатывает если ширина > высоты */
         @media (orientation: landscape) {
             #main-wrapper { 
-                padding: 0 !important; /* На весь экран */
+                padding: 0 !important; 
             }
             #game-viewport {
                 width: 100vw; height: 100vh;
             }
-            /* Логи сбоку, чтобы не закрывать центр */
             #system-logs { top: 0; bottom: 0; left: 0; width: 250px; border-right: 2px solid var(--neon-blue); border-left: none; }
-            /* Меню в ряд */
             .overlay-content { flex-direction: column; }
             #choice-buttons { flex-direction: row; }
             h1 { font-size: 2rem; }
@@ -242,7 +238,6 @@
         </div>
 
         <div id="game-viewport">
-            <!-- Видео (без атрибута muted, чтобы был звук) -->
             <video id="video-layer" playsinline></video>
             
             <div id="sim-layer">
@@ -433,9 +428,19 @@
             toggleFullscreen() {
                 window.Sound.play('click');
                 if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => console.log(err));
+                    document.documentElement.requestFullscreen().then(() => {
+                        // Попытка заблокировать ориентацию в ландшафт при полном экране
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch(e => console.log('Orientation lock failed', e));
+                        }
+                    }).catch(err => console.log(err));
                 } else {
-                    if (document.exitFullscreen) document.exitFullscreen();
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        if (screen.orientation && screen.orientation.unlock) {
+                            screen.orientation.unlock();
+                        }
+                    }
                 }
             }
         };
@@ -578,4 +583,4 @@
         };
     </script>
 </body>
-</html>
+</html>       
