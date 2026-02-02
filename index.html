@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Миссия: Киберщит | Система защиты</title>
+    <title>Миссия: Киберщит | Cloud System</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- CSS VARIABLES & RESET --- */
+        /* --- CSS STYLES --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
@@ -28,38 +28,23 @@
             justify-content: center;
         }
 
-        /* --- LAYOUT --- */
         #main-wrapper {
-            display: flex;
-            width: 95vw;
-            height: 90vh;
-            max-width: 1400px;
-            gap: 20px;
+            display: flex; width: 95vw; height: 90vh; max-width: 1400px; gap: 20px;
         }
 
-        /* --- TERMINAL (LOGS) --- */
+        /* LOGS */
         #system-logs {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid #333;
-            border-left: 4px solid var(--neon-blue);
-            padding: 15px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--neon-blue);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column-reverse;
-            text-shadow: 0 0 5px var(--neon-blue);
-            border-radius: 10px;
+            flex: 1; background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #333; border-left: 4px solid var(--neon-blue);
+            padding: 15px; font-family: 'Share Tech Mono', monospace;
+            font-size: 0.85rem; color: var(--neon-blue);
+            overflow-y: auto; display: flex; flex-direction: column-reverse;
+            text-shadow: 0 0 5px var(--neon-blue); border-radius: 10px;
         }
-        #system-logs::-webkit-scrollbar { width: 5px; }
-        #system-logs::-webkit-scrollbar-thumb { background: #333; }
-        
         .log-entry { margin-bottom: 5px; opacity: 0.8; }
-        .log-warn { color: var(--neon-red); font-weight: bold; }
+        .log-warn { color: var(--neon-red); }
         .log-success { color: var(--neon-green); }
-        .log-info { color: #fff; }
+        .log-cloud { color: #ffcc00; }
 
         @media (max-width: 900px) {
             #system-logs { display: none; }
@@ -67,19 +52,13 @@
             #game-viewport { border: none; border-radius: 0; }
         }
 
-        /* --- GAME VIEWPORT --- */
+        /* GAME */
         #game-viewport {
-            flex: 3;
-            position: relative;
-            background: #000;
-            border: 2px solid var(--neon-blue);
-            border-radius: 20px;
+            flex: 3; position: relative; background: #000;
+            border: 2px solid var(--neon-blue); border-radius: 20px;
             box-shadow: 0 0 40px rgba(0, 243, 255, 0.2);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden; display: flex; flex-direction: column;
         }
-
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: repeating-linear-gradient(transparent, transparent 2px, rgba(0, 255, 255, 0.05) 3px);
@@ -100,31 +79,25 @@
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* HUD */
+        /* UI ELEMENTS */
         #hud {
             position: absolute; top: 0; left: 0; right: 0;
             padding: 20px; display: flex; justify-content: space-between;
-            z-index: 20; text-transform: uppercase; font-size: 1.1rem;
-            pointer-events: none;
+            z-index: 20; text-transform: uppercase; font-size: 1.1rem; pointer-events: none;
         }
         .hud-item {
             background: rgba(0,0,0,0.7); border: 1px solid var(--neon-blue);
             padding: 8px 16px; border-radius: 8px;
             display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
         }
         #health-bar-container { width: 100px; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
         #health-bar-fill { width: 100%; height: 100%; background: var(--neon-green); transition: 0.5s; }
 
-        /* OVERLAYS */
         .overlay {
-            position: absolute; inset: 0;
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 30; text-align: center; padding: 20px;
-            transition: opacity 0.3s;
+            position: absolute; inset: 0; background: var(--glass);
+            backdrop-filter: blur(10px); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 30;
+            text-align: center; padding: 20px; transition: opacity 0.3s;
         }
         .hidden { opacity: 0; pointer-events: none; display: none !important; }
 
@@ -136,9 +109,9 @@
             border: 2px solid var(--neon-blue); padding: 15px 40px;
             font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
             cursor: pointer; transition: 0.3s; text-transform: uppercase;
-            letter-spacing: 2px; margin: 10px; position: relative; overflow: hidden;
+            margin: 10px; position: relative; overflow: hidden;
         }
-        .btn:hover { color: #000; background: var(--neon-blue); box-shadow: 0 0 30px var(--neon-blue); }
+        .btn:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 30px var(--neon-blue); }
         .btn-danger { border-color: var(--neon-red); color: var(--neon-red); }
         .btn-danger:hover { background: var(--neon-red); box-shadow: 0 0 30px var(--neon-red); }
 
@@ -146,9 +119,8 @@
             background: rgba(0,0,0,0.8); border-left: 4px solid var(--neon-blue);
             padding: 20px; text-align: left; max-width: 600px; margin-bottom: 20px;
         }
-        .info-title { color: #ffcc00; font-size: 1.2rem; margin-bottom: 5px; }
 
-        /* ADMIN / STATS PANEL */
+        /* ADMIN PANEL */
         #admin-panel {
             width: 80%; max-width: 800px; max-height: 80%;
             background: rgba(0,0,0,0.9); border: 1px solid #444;
@@ -160,6 +132,7 @@
         th { color: var(--neon-blue); }
         .status-win { color: var(--neon-green); }
         .status-fail { color: var(--neon-red); }
+        .source-cloud { color: #ffcc00; font-size: 0.8em; }
 
         #rotate-device {
             position: fixed; inset: 0; background: #000; z-index: 100;
@@ -172,30 +145,17 @@
 </head>
 <body>
 
-    <!-- ASSETS -->
     <audio id="sfx-hover" src="click.mp3"></audio>
-    
-    <div id="rotate-device">
-        <h1>📱 ⟳</h1>
-        <p>Для доступа к терминалу поверните устройство</p>
-    </div>
+    <div id="rotate-device"><h1>📱 ⟳</h1><p>Поверните устройство</p></div>
 
     <div id="main-wrapper">
-        <!-- LOGS -->
         <div id="system-logs">
-            <div class="log-entry log-info">> Инициализация ядра системы... OK</div>
-            <div class="log-entry log-info">> Подключение к хранилищу данных... OK</div>
+            <div class="log-entry log-info">> Загрузка ядра... OK</div>
         </div>
 
-        <!-- GAME -->
         <div id="game-viewport">
-            
             <video id="video-layer" playsinline></video>
-            
-            <div id="sim-layer">
-                <div class="loader-ring"></div>
-                <h2 style="margin-top:20px" id="sim-text">ЗАГРУЗКА ДАННЫХ...</h2>
-            </div>
+            <div id="sim-layer"><div class="loader-ring"></div><h2 style="margin-top:20px" id="sim-text">ЗАГРУЗКА...</h2></div>
 
             <div id="hud" class="hidden">
                 <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div> <span id="health-val">100%</span></div>
@@ -203,30 +163,25 @@
                 <div class="hud-item">💠 <span id="score-val">0</span></div>
             </div>
 
-            <!-- START -->
+            <!-- START SCREEN -->
             <div id="start-screen" class="overlay">
-                <h1>CYBERSHIELD v2.1</h1>
-                <h2>Data-Driven Security Simulator</h2>
+                <h1>CYBERSHIELD 2.2</h1>
+                <h2 style="color: var(--neon-green)">CLOUD CONNECTED</h2>
                 <input type="text" id="username-input" placeholder="ВВЕДИТЕ ПОЗЫВНОЙ" 
                        style="background: transparent; border: 1px solid #555; padding: 10px; color: white; font-family: inherit; margin-bottom: 20px; text-align: center; width: 250px; font-size: 1.2rem;">
-                
                 <div>
-                    <button class="btn" onclick="Game.init()">ЗАПУСТИТЬ СИСТЕМУ</button>
-                    <button class="btn" style="border-color: #555; color: #aaa; font-size: 1rem;" onclick="Stats.show()">📊 БАЗА ДАННЫХ</button>
-                </div>
-                
-                <div style="margin-top: 20px; font-size: 0.8rem; color: #666;">
-                    GitHub Edition | Big Data Project 2026
+                    <button class="btn" onclick="window.Game.init()">ЗАПУСТИТЬ СИСТЕМУ</button>
+                    <button class="btn" style="border-color: #555; color: #aaa;" onclick="window.Stats.show()">📊 ОБЛАЧНАЯ БАЗА</button>
                 </div>
             </div>
 
             <!-- STATS SCREEN -->
             <div id="stats-screen" class="overlay hidden">
-                <h1>АРХИВ МИССИЙ</h1>
+                <h1>ГЛОБАЛЬНЫЙ АРХИВ</h1>
                 <div id="admin-panel">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                        <span>ВСЕГО ЗАПУСКОВ: <b id="stat-total" style="color:white">0</b></span>
-                        <span>УСПЕШНО: <b id="stat-wins" style="color:var(--neon-green)">0</b></span>
+                        <span id="connection-status" style="color:#666">⚫ OFFLINE</span>
+                        <span>ЗАПИСЕЙ: <b id="stat-total">0</b></span>
                     </div>
                     <table id="stats-table">
                         <thead><tr><th>ДАТА</th><th>ПИЛОТ</th><th>СЧЕТ</th><th>СТАТУС</th></tr></thead>
@@ -234,102 +189,150 @@
                     </table>
                 </div>
                 <div style="margin-top: 20px;">
-                    <button class="btn" onclick="Stats.hide()">НАЗАД</button>
-                    <button class="btn btn-danger" onclick="Stats.clear()">ОЧИСТИТЬ БАЗУ</button>
+                    <button class="btn" onclick="window.Stats.hide()">НАЗАД</button>
+                    <button class="btn btn-danger" onclick="window.Stats.clearLocal()">ОЧИСТИТЬ КЭШ</button>
                 </div>
             </div>
 
-            <!-- OTHER SCREENS -->
+            <!-- SCENARIO SCREENS -->
             <div id="edu-screen" class="overlay hidden">
-                <h1>⚠ ОБНАРУЖЕНА УГРОЗА</h1>
-                <div class="info-card">
-                    <div class="info-title" id="edu-title">ТИП УГРОЗЫ</div>
-                    <div id="edu-text">Описание...</div>
-                </div>
-                <button class="btn" onclick="Game.nextStep()">ПРИНЯТЬ УПРАВЛЕНИЕ</button>
+                <h1>⚠ АНАЛИЗ УГРОЗЫ</h1>
+                <div class="info-card"><div class="info-title" id="edu-title">ТИП</div><div id="edu-text">...</div></div>
+                <button class="btn" onclick="window.Game.nextStep()">ПРОДОЛЖИТЬ</button>
             </div>
 
             <div id="choice-screen" class="overlay hidden">
-                <h1 id="choice-header">ВХОДЯЩИЙ ЗАПРОС</h1>
+                <h1 id="choice-header">ЗАПРОС</h1>
                 <p id="choice-desc">...</p>
                 <div id="choice-buttons"></div>
             </div>
 
             <div id="feedback-screen" class="overlay hidden">
-                <h1 id="fb-header">РЕЗУЛЬТАТ</h1>
+                <h1 id="fb-header">ИТОГ</h1>
                 <p id="fb-desc">...</p>
-                <button class="btn" onclick="Game.resolveLevel()">ПРОДОЛЖИТЬ</button>
+                <button class="btn" onclick="window.Game.resolveLevel()">ДАЛЕЕ</button>
             </div>
 
             <div id="end-screen" class="overlay hidden">
-                <h1 id="end-title">МИССИЯ ЗАВЕРШЕНА</h1>
-                <h2 id="end-score">СЧЕТ: 0</h2>
+                <h1 id="end-title">КОНЕЦ МИССИИ</h1>
+                <h2 id="end-score">0</h2>
                 <button class="btn" onclick="location.reload()">ГЛАВНОЕ МЕНЮ</button>
             </div>
-
         </div>
     </div>
 
-    <script>
-        /* === SCENARIOS DATA === */
-        const SCENARIOS = [
-            { id: "intro", type: "video", src: "intro.mp4", simText: "ЗАГРУЗКА ИНТЕРФЕЙСА...", log: "Запуск протоколов безопасности..." },
-            { id: "l1_theory", type: "education", title: "ФИШИНГ (PHISHING)", text: "Мошенничество с целью кражи паролей. Признаки: срочность, обещание выгоды.", log: "Анализ трафика: Подозрительный Email." },
-            { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ВХОДЯЩЕЕ СООБЩЕНИЕ...", log: "Событие: Получено письмо с вложением." },
-            { id: "l1_choice", type: "choice", header: "🚨 ПОДОЗРИТЕЛЬНАЯ ССЫЛКА", desc: "Письмо: 'Вы выиграли планшет! Жми сюда!'", options: [
-                { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно! Ссылка вела на фишинговый сайт.", score: 500 },
-                { text: "🎁 ОТКРЫТЬ", correct: false, feedback: "Ошибка! Скрипт запущен.", score: 0, damage: 30 }
-            ]},
-            { id: "l2_virus", type: "video", src: "virus_map.mp4", simText: "РАСПРОСТРАНЕНИЕ УГРОЗЫ...", log: "ВНИМАНИЕ: Сетевая активность вируса." },
-            { id: "l2_theory", type: "education", title: "RANSOMWARE", text: "Программа-вымогатель. Шифрует файлы и требует выкуп.", log: "Файловая система зашифрована." },
-            { id: "l2_choice", type: "choice", header: "🤖 ВЫМОГАТЕЛЬ", desc: "Экран заблокирован. Требуют выкуп.", options: [
-                { text: "💸 ЗАПЛАТИТЬ", correct: false, feedback: "Провал. Хакеры не вернули доступ.", score: 0, damage: 100 },
-                { text: "🔧 БЭКАП", correct: true, feedback: "Отлично! Система восстановлена из копии.", score: 1000 }
-            ]},
-             { id: "win", type: "video", src: "win.mp4", simText: "СИСТЕМА ВОССТАНОВЛЕНА", log: "Угроза устранена." }
-        ];
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        // Импорт библиотек Google Firebase (Cloud Database)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        /* === DB MANAGER === */
-        const Stats = {
-            key: 'CYBERSHIELD_DB_V2',
-            
-            get() {
-                return JSON.parse(localStorage.getItem(this.key)) || [];
-            },
-            
-            save(record) {
-                const data = this.get();
-                data.push(record);
-                localStorage.setItem(this.key, JSON.stringify(data));
-            },
-            
-            clear() {
-                if(confirm('Удалить всю историю?')) {
-                    localStorage.removeItem(this.key);
-                    this.render();
+        // =========================================================================
+        // 🔴 1. ВСТАВИТЬ КОНФИГ FIREBASE СЮДА (из консоли Firebase)
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAKN2b8ZsWpbnTPdgOKIoG_moCAZdR6mc",
+            authDomain: "cybershield-b4422.firebaseapp.com",
+            projectId: "cybershield-b4422",
+            storageBucket: "cybershield-b4422.firebasestorage.app",
+            messagingSenderId: "1048501198341",
+            appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c",
+            measurementId: "G-68L6Z80PX5"
+        };
+
+        // Инициализация облака
+        let db = null;
+        let isCloudActive = false;
+
+        try {
+            if (firebaseConfig.apiKey) {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                isCloudActive = true;
+                console.log("Cloud Connected");
+                logToTerminal("Подключение к Google Cloud... УСПЕХ", "cloud");
+            } else {
+                console.warn("Firebase config is empty. Using LocalStorage only.");
+                logToTerminal("Облако недоступно. Работа в локальном режиме.", "warn");
+            }
+        } catch (e) {
+            console.error("Firebase Error:", e);
+        }
+
+        // =========================================================================
+        // ЛОГИКА СТАТИСТИКИ (HYBRID: CLOUD + LOCAL)
+        // =========================================================================
+        window.Stats = {
+            localKey: 'CYBERSHIELD_LOCAL_V2',
+
+            async save(record) {
+                // 1. Сохраняем локально (на всякий случай)
+                const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
+                localData.push(record);
+                localStorage.setItem(this.localKey, JSON.stringify(localData));
+
+                // 2. Отправляем в облако (если есть конфиг)
+                if (isCloudActive && db) {
+                    try {
+                        logToTerminal("Синхронизация с облаком...", "cloud");
+                        await addDoc(collection(db, "mission_results"), {
+                            ...record,
+                            timestamp: Timestamp.now()
+                        });
+                        logToTerminal("Данные сохранены в Google Cloud", "success");
+                    } catch (e) {
+                        logToTerminal("Ошибка записи в облако: " + e.message, "warn");
+                    }
                 }
             },
 
-            show() {
-                Game.hideAllOverlays();
+            async show() {
+                window.Game.hideAllOverlays();
                 document.getElementById('stats-screen').classList.remove('hidden');
-                this.render();
+                
+                const statusEl = document.getElementById('connection-status');
+                const tbody = document.querySelector('#stats-table tbody');
+                tbody.innerHTML = '<tr><td colspan="4">Загрузка данных...</td></tr>';
+
+                let data = [];
+
+                // Пытаемся скачать из облака
+                if (isCloudActive && db) {
+                    try {
+                        statusEl.innerHTML = '🟢 CLOUD ONLINE';
+                        statusEl.style.color = 'var(--neon-green)';
+                        
+                        const q = query(collection(db, "mission_results"), orderBy("timestamp", "desc"), limit(50));
+                        const querySnapshot = await getDocs(q);
+                        
+                        querySnapshot.forEach((doc) => {
+                            const d = doc.data();
+                            data.push(d);
+                        });
+                    } catch (e) {
+                        statusEl.innerText = '🔴 CLOUD ERROR';
+                        console.error(e);
+                    }
+                } else {
+                    statusEl.innerText = '🟡 LOCAL ONLY';
+                }
+
+                // Если облако пустое или недоступно, берем локальные
+                if (data.length === 0) {
+                    data = JSON.parse(localStorage.getItem(this.localKey)) || [];
+                    // Сортируем локальные (новые сверху)
+                    data.reverse();
+                }
+
+                this.renderTable(data);
             },
 
-            hide() {
-                document.getElementById('stats-screen').classList.add('hidden');
-                document.getElementById('start-screen').classList.remove('hidden');
-            },
-
-            render() {
-                const data = this.get();
+            renderTable(data) {
                 const tbody = document.querySelector('#stats-table tbody');
                 tbody.innerHTML = '';
-                
-                let wins = 0;
-                // Show last 10 records, newest first
-                data.slice().reverse().slice(0, 50).forEach(rec => {
-                    if(rec.status === 'WIN') wins++;
+                document.getElementById('stat-total').innerText = data.length;
+
+                data.forEach(rec => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td style="color:#888">${rec.date}</td>
@@ -339,47 +342,71 @@
                     `;
                     tbody.appendChild(tr);
                 });
+            },
 
-                document.getElementById('stat-total').innerText = data.length;
-                document.getElementById('stat-wins').innerText = wins;
+            hide() {
+                document.getElementById('stats-screen').classList.add('hidden');
+                document.getElementById('start-screen').classList.remove('hidden');
+            },
+
+            clearLocal() {
+                if(confirm('Очистить локальный кэш? Облачные данные останутся.')) {
+                    localStorage.removeItem(this.localKey);
+                    this.show(); // Перерисовать
+                }
             }
         };
 
-        /* === GAME ENGINE === */
-        const Game = {
-            state: { stepIndex: 0, score: 0, health: 100, user: "GUEST" },
-            ui: {
-                video: document.getElementById('video-layer'),
-                sim: document.getElementById('sim-layer'),
-                hud: document.getElementById('hud'),
-                logs: document.getElementById('system-logs'),
-                screens: {
-                    start: document.getElementById('start-screen'),
-                    edu: document.getElementById('edu-screen'),
-                    choice: document.getElementById('choice-screen'),
-                    feedback: document.getElementById('feedback-screen'),
-                    end: document.getElementById('end-screen'),
-                    stats: document.getElementById('stats-screen')
-                }
-            },
+        // Вспомогательная функция для логов из модуля
+        function logToTerminal(msg, type) {
+            const container = document.getElementById('system-logs');
+            if(container) {
+                const d = document.createElement('div');
+                d.className = `log-entry log-${type}`;
+                d.innerText = `[SYS] ${msg}`;
+                container.prepend(d);
+            }
+        }
+    </script>
 
+    <!-- MAIN GAME LOGIC -->
+    <script>
+        // СЦЕНАРИИ
+        const SCENARIOS = [
+            { id: "intro", type: "video", src: "intro.mp4", simText: "ЗАГРУЗКА...", log: "Инициализация протоколов..." },
+            { id: "l1_theory", type: "education", title: "ФИШИНГ", text: "Мошенничество с целью кражи паролей.", log: "Анализ трафика: Подозрительный Email." },
+            { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ВХОДЯЩЕЕ СООБЩЕНИЕ...", log: "Событие: Письмо с вложением." },
+            { id: "l1_choice", type: "choice", header: "ССЫЛКА", desc: "Письмо: 'Вы выиграли планшет!'", options: [
+                { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно! Угроза устранена.", score: 500 },
+                { text: "🎁 ОТКРЫТЬ", correct: false, feedback: "Ошибка! Загружен вирус.", score: 0, damage: 30 }
+            ]},
+            { id: "l2_virus", type: "video", src: "virus_map.mp4", simText: "ВИРУС...", log: "ВНИМАНИЕ: Сетевая атака." },
+            { id: "l2_choice", type: "choice", header: "ВЫМОГАТЕЛЬ", desc: "Требуют выкуп.", options: [
+                { text: "💸 ЗАПЛАТИТЬ", correct: false, feedback: "Провал. Доступ не вернули.", score: 0, damage: 100 },
+                { text: "🔧 БЭКАП", correct: true, feedback: "Успех! Система восстановлена.", score: 1000 }
+            ]},
+             { id: "win", type: "video", src: "win.mp4", simText: "ПОБЕДА", log: "Система чиста." }
+        ];
+
+        // ИГРОВОЙ ДВИЖОК
+        window.Game = {
+            state: { stepIndex: 0, score: 0, health: 100, user: "GUEST" },
+            
             init() {
                 const name = document.getElementById('username-input').value.trim();
                 if(name) this.state.user = name;
                 document.getElementById('user-name-display').innerText = this.state.user;
-                this.log(`> Регистрация пилота: ${this.state.user}`, 'success');
-                this.ui.screens.start.classList.add('hidden');
-                this.ui.hud.classList.remove('hidden');
+                this.log(`Пилот зарегистрирован: ${this.state.user}`, 'success');
+                this.toggleScreen('start-screen', false);
+                document.getElementById('hud').classList.remove('hidden');
                 this.runStep();
             },
 
             runStep() {
-                if (this.state.stepIndex >= SCENARIOS.length) {
-                    this.finishGame(true);
-                    return;
-                }
+                if (this.state.stepIndex >= SCENARIOS.length) { this.finish(true); return; }
                 const s = SCENARIOS[this.state.stepIndex];
-                if(s.log) this.log(`> ${s.log}`);
+                if(s.log) this.log(s.log);
+                
                 if(s.type === 'video') this.playVideo(s);
                 else if(s.type === 'education') this.showEdu(s);
                 else if(s.type === 'choice') this.showChoice(s);
@@ -387,26 +414,20 @@
 
             playVideo(s) {
                 this.hideAllOverlays();
-                this.ui.video.style.display = 'block';
-                this.ui.sim.style.display = 'none';
-                this.ui.video.src = s.src;
-                this.ui.video.play().catch(() => this.runSim(s));
-                this.ui.video.onended = () => this.nextStep();
-                this.ui.video.onerror = () => this.runSim(s);
-            },
-
-            runSim(s) {
-                this.ui.video.style.display = 'none';
-                this.ui.sim.style.display = 'flex';
-                document.getElementById('sim-text').innerText = s.simText;
-                setTimeout(() => this.nextStep(), 2500);
+                const v = document.getElementById('video-layer');
+                const sim = document.getElementById('sim-layer');
+                v.style.display = 'block'; sim.style.display = 'none';
+                v.src = s.src;
+                v.play().catch(() => { v.style.display='none'; sim.style.display='flex'; document.getElementById('sim-text').innerText=s.simText; setTimeout(()=>this.nextStep(),2500); });
+                v.onended = () => this.nextStep();
+                v.onerror = () => v.onended(); // Fallback
             },
 
             showEdu(s) {
                 this.hideAllOverlays();
                 document.getElementById('edu-title').innerText = s.title;
                 document.getElementById('edu-text').innerText = s.text;
-                this.ui.screens.edu.classList.remove('hidden');
+                document.getElementById('edu-screen').classList.remove('hidden');
             },
 
             showChoice(s) {
@@ -422,69 +443,67 @@
                     btn.onclick = () => this.handleChoice(opt);
                     c.appendChild(btn);
                 });
-                this.ui.screens.choice.classList.remove('hidden');
+                document.getElementById('choice-screen').classList.remove('hidden');
             },
 
             handleChoice(opt) {
-                this.log(`> Решение: ${opt.text}`, opt.correct ? 'success' : 'warn');
-                if(opt.score) this.updateScore(opt.score);
+                this.log(`Решение: ${opt.text}`, opt.correct ? 'success' : 'warn');
+                if(opt.score) this.state.score += opt.score;
                 if(opt.damage) this.updateHealth(-opt.damage);
+                document.getElementById('score-val').innerText = this.state.score;
                 
                 document.getElementById('fb-header').innerText = opt.correct ? "УСПЕХ" : "ОШИБКА";
                 document.getElementById('fb-header').style.color = opt.correct ? "var(--neon-green)" : "var(--neon-red)";
                 document.getElementById('fb-desc').innerText = opt.feedback;
                 
-                this.ui.screens.choice.classList.add('hidden');
-                this.ui.screens.feedback.classList.remove('hidden');
+                this.toggleScreen('choice-screen', false);
+                document.getElementById('feedback-screen').classList.remove('hidden');
                 
-                if (this.state.health <= 0) setTimeout(() => this.finishGame(false), 1500);
+                if (this.state.health <= 0) setTimeout(() => this.finish(false), 1500);
             },
 
-            resolveLevel() {
-                if (this.state.health > 0) this.nextStep();
-                else this.finishGame(false);
-            },
-
+            resolveLevel() { this.state.health > 0 ? this.nextStep() : this.finish(false); },
             nextStep() { this.state.stepIndex++; this.runStep(); },
 
-            updateScore(v) { this.state.score += v; document.getElementById('score-val').innerText = this.state.score; },
             updateHealth(v) {
-                this.state.health += v;
-                if(this.state.health < 0) this.state.health = 0;
-                const bar = document.getElementById('health-bar-fill');
-                bar.style.width = this.state.health + "%";
+                this.state.health = Math.max(0, this.state.health + v);
+                document.getElementById('health-bar-fill').style.width = this.state.health + "%";
                 document.getElementById('health-val').innerText = this.state.health + "%";
-                if(this.state.health < 30) bar.style.background = 'var(--neon-red)';
             },
 
             log(msg, type='info') {
+                const logs = document.getElementById('system-logs');
                 const d = document.createElement('div');
                 d.className = `log-entry log-${type}`;
-                d.innerText = `[${new Date().toLocaleTimeString('ru-RU')}] ${msg}`;
-                this.ui.logs.prepend(d);
+                d.innerText = `> ${msg}`;
+                logs.prepend(d);
             },
 
-            hideAllOverlays() {
-                Object.values(this.ui.screens).forEach(el => el.classList.add('hidden'));
-            },
-
-            finishGame(isWin) {
+            finish(isWin) {
                 this.hideAllOverlays();
-                this.ui.screens.end.classList.remove('hidden');
-                const title = document.getElementById('end-title');
-                title.innerText = isWin ? "ПОБЕДА" : "СИСТЕМА УНИЧТОЖЕНА";
-                title.style.color = isWin ? "var(--neon-green)" : "var(--neon-red)";
+                const scr = document.getElementById('end-screen');
+                scr.classList.remove('hidden');
+                document.getElementById('end-title').innerText = isWin ? "ПОБЕДА" : "ПРОВАЛ";
+                document.getElementById('end-title').style.color = isWin ? "var(--neon-green)" : "var(--neon-red)";
                 document.getElementById('end-score').innerText = `СЧЕТ: ${this.state.score}`;
-                
-                // SAVE STATS
-                Stats.save({
-                    date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+
+                // SAVE TO CLOUD & LOCAL
+                if(window.Stats) window.Stats.save({
+                    date: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'}),
                     user: this.state.user,
                     score: this.state.score,
                     status: isWin ? 'WIN' : 'FAIL'
                 });
+            },
+
+            hideAllOverlays() {
+                document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+            },
+            toggleScreen(id, show) {
+                const el = document.getElementById(id);
+                show ? el.classList.remove('hidden') : el.classList.add('hidden');
             }
         };
     </script>
 </body>
-</html>           
+</html>
