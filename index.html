@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Final</title>
+    <title>Миссия: Киберщит | Final Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- СТИЛИ --- */
+        /* --- СТИЛИ БЕЗ ИЗМЕНЕНИЙ --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
@@ -35,7 +35,6 @@
             width: 100%; height: 100%; z-index: 10;
         }
         
-        /* Ловушка для клика */
         #click-trap {
             position: absolute; inset: 0; z-index: 45; 
             display: none; background: rgba(0,0,0,0.4); 
@@ -168,13 +167,14 @@
             box-shadow: 0 0 25px var(--neon-blue); white-space: nowrap; text-transform: uppercase;
         }
 
-        /* --- АДАПТИВНОСТЬ (ВОССТАНОВЛЕНА) --- */
+        /* --- АДАПТИВНОСТЬ --- */
         @media (orientation: portrait) {
             #main-wrapper { flex-direction: column; }
             #side-menu { 
                 bottom: 0; left: 0; right: 0; height: 40vh; 
                 border-top: 2px solid var(--neon-blue); border-left: none; 
-                border-radius: 20px 20px 0 0; transform: translateY(0);
+                border-radius: 20px 20px 0 0;
+                transform: translateY(0);
             }
             #side-menu.collapsed { transform: translateY(105%); }
             .btn { width: 90%; }
@@ -182,7 +182,6 @@
         }
 
         @media (orientation: landscape) {
-            /* КРИТИЧЕСКИ ВАЖНЫЙ КОД ДЛЯ РАЗВОРОТА */
             #main-wrapper { padding: 0 !important; }
             #game-viewport { width: 100vw; height: 100vh; position: fixed; inset: 0; }
             #side-menu { 
@@ -208,7 +207,7 @@
 
         <div id="side-menu" class="collapsed">
             <div class="close-menu-btn" onclick="window.UI.toggleTerminal()">&#10005;</div>
-            <div class="log-entry log-info">> Загрузка ядра системы v7.0...</div>
+            <div class="log-entry log-info">> Загрузка ядра системы v6.0...</div>
             <div class="log-entry log-info">> Проверка безопасности... OK</div>
             <div class="log-entry log-info">> Ожидание авторизации...</div>
         </div>
@@ -237,7 +236,7 @@
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
-                    <h2>FINAL STABLE</h2>
+                    <h2>FINAL CONTROL</h2>
                     <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="12"
                            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 15px; color: white; font-family: inherit; margin-bottom: 30px; text-align: center; width: 280px; font-size: 1.2rem; border-radius: 6px; outline: none; letter-spacing: 2px; text-transform: uppercase;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК СИСТЕМЫ</button>
@@ -296,7 +295,7 @@
         </div>
     </div>
 
-    <!-- FIREBASE MODULE -->
+    <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -307,11 +306,10 @@
         try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
         window.Stats = {
-            localKey: 'CYBERSHIELD_FINAL_V2',
             async save(record) {
-                const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
+                const localData = JSON.parse(localStorage.getItem('CS_31')) || [];
                 localData.push(record);
-                localStorage.setItem(this.localKey, JSON.stringify(localData));
+                localStorage.setItem('CS_31', JSON.stringify(localData));
                 if (db && isCloudActive) {
                     try { 
                         const auth = getAuth();
@@ -336,7 +334,7 @@
                         const snapshot = await getDocs(q); snapshot.forEach((doc) => data.push(doc.data())); 
                     } catch (e) {}
                 }
-                if (data.length === 0) { data = JSON.parse(localStorage.getItem(this.localKey)) || []; data.reverse(); }
+                if (data.length === 0) { data = JSON.parse(localStorage.getItem('CS_31')) || []; data.reverse(); }
                 this.renderTable(data);
             },
             renderTable(data) {
@@ -350,7 +348,7 @@
                 });
             },
             hide() { window.Sound.play('click'); document.getElementById('stats-screen').classList.add('hidden'); document.getElementById('start-screen').classList.remove('hidden'); },
-            clearLocal() { window.Sound.play('click'); if(confirm('Вы уверены?')) { localStorage.removeItem(this.localKey); this.show(); } }
+            clearLocal() { window.Sound.play('click'); if(confirm('Вы уверены?')) { localStorage.removeItem('CS_31'); this.show(); } }
         };
 
         function logToTerminal(msg, type) {
@@ -495,6 +493,7 @@
                 const onPlay = () => { 
                     v.classList.add('playing'); 
                     sim.classList.add('fade-out'); 
+                    v.playbackRate = 1.0; // СКОРОСТЬ 1.0 - БЕЗ ЛАГОВ
                     v.removeEventListener('playing', onPlay); 
                 };
                 v.addEventListener('playing', onPlay);
@@ -520,12 +519,11 @@
                 document.getElementById('edu-screen').classList.remove('hidden');
             },
             closeEdu() {
-                // БЕЗ ЗАДЕРЖКИ
                 if(this.isBusy) return;
                 this.isBusy = true;
                 window.Sound.play('click');
                 document.getElementById('edu-screen').classList.add('hidden');
-                setTimeout(() => { this.isBusy = false; this.nextStep(); }, 100);
+                setTimeout(() => { this.isBusy = false; this.nextStep(); }, 200);
             },
             showChoice(s) {
                 this.hideAllOverlays();
