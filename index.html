@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Final Stable</title>
+    <title>Миссия: Киберщит | Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- СТИЛИ (ВОССТАНОВЛЕНЫ ИЗ РАБОЧЕЙ ВЕРСИИ) --- */
+        /* --- СТИЛИ --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
@@ -35,7 +35,7 @@
             width: 100%; height: 100%; z-index: 10;
         }
         
-        /* Ловушка для клика (чтобы закрывать меню кликом по экрану) */
+        /* Ловушка для клика */
         #click-trap {
             position: absolute; inset: 0; z-index: 45; 
             display: none; background: rgba(0,0,0,0.4); 
@@ -174,8 +174,7 @@
             #side-menu { 
                 bottom: 0; left: 0; right: 0; height: 40vh; 
                 border-top: 2px solid var(--neon-blue); border-left: none; 
-                border-radius: 20px 20px 0 0;
-                transform: translateY(0);
+                border-radius: 20px 20px 0 0; transform: translateY(0);
             }
             #side-menu.collapsed { transform: translateY(105%); }
             .btn { width: 90%; }
@@ -183,6 +182,7 @@
         }
 
         @media (orientation: landscape) {
+            /* КРИТИЧЕСКИ ВАЖНЫЙ КОД ДЛЯ РАЗВОРОТА */
             #main-wrapper { padding: 0 !important; }
             #game-viewport { width: 100vw; height: 100vh; position: fixed; inset: 0; }
             #side-menu { 
@@ -208,7 +208,7 @@
 
         <div id="side-menu" class="collapsed">
             <div class="close-menu-btn" onclick="window.UI.toggleTerminal()">&#10005;</div>
-            <div class="log-entry log-info">> Загрузка ядра системы v6.0...</div>
+            <div class="log-entry log-info">> Загрузка ядра системы v7.0...</div>
             <div class="log-entry log-info">> Проверка безопасности... OK</div>
             <div class="log-entry log-info">> Ожидание авторизации...</div>
         </div>
@@ -237,7 +237,7 @@
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
-                    <h2>STABLE EDITION</h2>
+                    <h2>FINAL STABLE</h2>
                     <input type="text" id="username-input" placeholder="ИМЯ АГЕНТА" maxlength="12"
                            style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); padding: 15px; color: white; font-family: inherit; margin-bottom: 30px; text-align: center; width: 280px; font-size: 1.2rem; border-radius: 6px; outline: none; letter-spacing: 2px; text-transform: uppercase;">
                     <button class="btn" onclick="window.Game.init()">🚀 ЗАПУСК СИСТЕМЫ</button>
@@ -307,10 +307,11 @@
         try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
         window.Stats = {
+            localKey: 'CYBERSHIELD_FINAL_V2',
             async save(record) {
-                const localData = JSON.parse(localStorage.getItem('CS_31')) || [];
+                const localData = JSON.parse(localStorage.getItem(this.localKey)) || [];
                 localData.push(record);
-                localStorage.setItem('CS_31', JSON.stringify(localData));
+                localStorage.setItem(this.localKey, JSON.stringify(localData));
                 if (db && isCloudActive) {
                     try { 
                         const auth = getAuth();
@@ -335,7 +336,7 @@
                         const snapshot = await getDocs(q); snapshot.forEach((doc) => data.push(doc.data())); 
                     } catch (e) {}
                 }
-                if (data.length === 0) { data = JSON.parse(localStorage.getItem('CS_31')) || []; data.reverse(); }
+                if (data.length === 0) { data = JSON.parse(localStorage.getItem(this.localKey)) || []; data.reverse(); }
                 this.renderTable(data);
             },
             renderTable(data) {
@@ -349,7 +350,7 @@
                 });
             },
             hide() { window.Sound.play('click'); document.getElementById('stats-screen').classList.add('hidden'); document.getElementById('start-screen').classList.remove('hidden'); },
-            clearLocal() { window.Sound.play('click'); if(confirm('Вы уверены?')) { localStorage.removeItem('CS_31'); this.show(); } }
+            clearLocal() { window.Sound.play('click'); if(confirm('Вы уверены?')) { localStorage.removeItem(this.localKey); this.show(); } }
         };
 
         function logToTerminal(msg, type) {
@@ -446,6 +447,7 @@
                 { text: "💸 ЗАПЛАТИТЬ", correct: false, feedback: "Ошибка. Деньги потеряны, файлы не расшифрованы.", score: 0, damage: 100 },
                 { text: "🔧 ВОССТАНОВИТЬ", correct: true, feedback: "Успех! Система восстановлена из копии.", score: 1000 }
             ]}
+            // Дубликат win.mp4 удален
         ];
 
         window.Game = {
@@ -463,6 +465,7 @@
                 document.getElementById('hud').classList.remove('hidden');
                 
                 const v = document.getElementById('video-layer');
+                // РАЗБЛОКИРОВКА ЗВУКА
                 v.muted = false; v.volume = 1.0;
                 v.play().then(() => v.pause()).catch(() => {});
                 
@@ -517,11 +520,12 @@
                 document.getElementById('edu-screen').classList.remove('hidden');
             },
             closeEdu() {
+                // БЕЗ ЗАДЕРЖКИ
                 if(this.isBusy) return;
                 this.isBusy = true;
                 window.Sound.play('click');
                 document.getElementById('edu-screen').classList.add('hidden');
-                setTimeout(() => { this.isBusy = false; this.nextStep(); }, 200);
+                setTimeout(() => { this.isBusy = false; this.nextStep(); }, 100);
             },
             showChoice(s) {
                 this.hideAllOverlays();
@@ -543,6 +547,7 @@
                 this.isBusy = true;
                 window.Sound.play(opt.correct ? 'success' : 'error');
                 document.getElementById('choice-screen').classList.add('hidden');
+                
                 this.log(`Решение: ${opt.text}`, opt.correct ? 'success' : 'warn');
                 if(opt.score) this.state.score += opt.score;
                 if(opt.damage) this.updateHealth(-opt.damage);
@@ -550,16 +555,23 @@
                 document.getElementById('fb-header').innerText = opt.correct ? "УСПЕХ" : "ПРОВАЛ";
                 document.getElementById('fb-header').style.color = opt.correct ? "var(--neon-green)" : "var(--neon-red)";
                 document.getElementById('fb-desc').innerText = opt.feedback;
+                
                 document.getElementById('feedback-screen').classList.remove('hidden');
                 setTimeout(() => { this.isBusy = false; }, 500);
-                if (this.state.health <= 0) setTimeout(() => this.finish(false), 2000);
+                // Убрал авто-переход при проигрыше!
             },
             resolveLevel() { 
                 if(this.isBusy) return;
                 this.isBusy = true;
                 window.Sound.play('click');
                 document.getElementById('feedback-screen').classList.add('hidden');
-                setTimeout(() => { this.isBusy = false; if (this.state.health > 0) this.nextStep(); else this.finish(false); }, 200);
+                
+                // Только здесь решаем, куда идти
+                setTimeout(() => { 
+                    this.isBusy = false; 
+                    if (this.state.health > 0) this.nextStep(); 
+                    else this.finish(false); 
+                }, 100);
             },
             nextStep() { this.state.stepIndex++; this.runStep(); },
             updateHealth(v) {
@@ -583,12 +595,7 @@
                 const v = document.getElementById('video-layer');
                 const sim = document.getElementById('sim-layer');
                 
-                // Сброс и запуск финала
-                v.classList.remove('playing');
-                sim.classList.remove('fade-out');
-
-                v.src = isWin ? "win.mp4" : "lose.mp4"; 
-                v.load();
+                v.src = isWin ? "win.mp4" : "lose.mp4"; v.load();
                 
                 const onEnd = () => {
                     window.Sound.play(isWin ? 'success' : 'error');
