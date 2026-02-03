@@ -301,7 +301,7 @@
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
-        const firebaseConfig = { apiKey: "AIzaSyBAKN2b8ZsWpbnTPdgOKIoG_moCAZdR6mc", authDomain: "cybershield-b4422.firebaseapp.com", projectId: "cybershield-b4422", storageBucket: "cybershield-b4422.firebasestorage.app", messagingSenderId: "1048501198341", appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c", measurementId: "G-68L6Z80PX5" };
+        const firebaseConfig = { apiKey: "", authDomain: "cybershield-b4422.firebaseapp.com", projectId: "cybershield-b4422", storageBucket: "cybershield-b4422.firebasestorage.app", messagingSenderId: "1048501198341", appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c", measurementId: "G-68L6Z80PX5" };
         let db = null; let isCloudActive = false;
         try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
 
