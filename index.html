@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Миссия: Киберщит | Grandmaster</title>
+    <title>Миссия: Киберщит | Mobile Optimized</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- СТИЛИ (OPTIMIZED) --- */
@@ -11,7 +11,7 @@
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
             --neon-red: #ff003c;
-            --bg-color: #050505;
+            --bg-color: #000000; /* Полностью черный фон для рамок */
             --glass: rgba(10, 16, 26, 0.96);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -33,6 +33,7 @@
             position: absolute; inset: 0; background: #000;
             overflow: hidden; display: flex; flex-direction: column;
             width: 100%; height: 100%; z-index: 10;
+            justify-content: center; /* Центрирование контента по вертикали */
         }
         
         #click-trap {
@@ -42,7 +43,34 @@
         }
         #click-trap.active { display: block; }
 
-        /* ОПТИМИЗАЦИЯ: Фон скрывается когда видео играет */
+        /* ОПТИМИЗАЦИЯ ВИДЕО ПОД МОБИЛЬНЫЕ */
+        video { 
+            width: 100%; 
+            height: 100%; 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.4s; 
+            background: #000; 
+            transform: translateZ(0); 
+            will-change: opacity;
+            /* По умолчанию (для горизонтали) заполняем экран */
+            object-fit: cover; 
+            object-position: center;
+        }
+
+        /* СПЕЦИАЛЬНО ДЛЯ ВЕРТИКАЛЬНЫХ ЭКРАНОВ */
+        @media (orientation: portrait) {
+            video {
+                /* В вертикальном режиме видео вписывается, сохраняя пропорции (черные полосы сверху/снизу) */
+                object-fit: contain; 
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        video.playing { opacity: 1; display: block; }
+
+        /* Фоновый паттерн (сетка) */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: 
@@ -52,14 +80,7 @@
             pointer-events: none; z-index: 15;
             transition: opacity 0.3s;
         }
-        #game-viewport.video-mode::after { opacity: 0; } /* Убираем лаги */
-
-        video { 
-            width: 100%; height: 100%; object-fit: cover; 
-            display: none; opacity: 0; transition: opacity 0.4s; 
-            background: #000; transform: translateZ(0); will-change: opacity;
-        }
-        video.playing { opacity: 1; display: block; }
+        #game-viewport.video-mode::after { opacity: 0; }
 
         #sim-layer {
             position: absolute; inset: 0; display: flex;
@@ -119,7 +140,7 @@
         }
         .icon-btn {
             background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;
-            cursor: pointer; font-size: 1.4rem; padding: 0; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem; padding: 0; border-radius: 50%;
             width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
             transition: 0.2s; touch-action: manipulation;
         }
@@ -198,7 +219,6 @@
         </div>
 
         <div id="game-viewport">
-            <!-- muted для гарантии автоплея на мобильных -->
             <video id="video-layer" playsinline webkit-playsinline preload="auto" muted></video>
             
             <div id="sim-layer">
@@ -208,7 +228,7 @@
 
             <div id="hud" class="hidden">
                 <div class="hud-left">
-                    <button class="icon-btn" id="btn-fullscreen" onclick="window.UI.toggleFullscreen()" title="На весь экран">&#9974;</button>
+                    <button class="icon-btn" id="btn-fullscreen" onclick="window.UI.toggleFullscreen()" title="На весь экран">📺</button>
                     <button class="icon-btn" id="btn-logs" onclick="window.UI.toggleTerminal()" title="Логи">&#9776;</button>
                     <div class="hud-item">🛡️ <div id="health-bar-container"><div id="health-bar-fill"></div></div></div>
                 </div>
@@ -218,7 +238,6 @@
                 </div>
             </div>
 
-            <!-- START SCREEN -->
             <div id="start-screen" class="overlay">
                 <div class="overlay-content">
                     <h1>CYBERSHIELD</h1>
@@ -230,7 +249,6 @@
                 </div>
             </div>
 
-            <!-- OTHER SCREENS... -->
             <div id="stats-screen" class="overlay hidden">
                 <div class="overlay-content">
                     <h1>АРХИВ МИССИЙ</h1>
@@ -281,7 +299,6 @@
         </div>
     </div>
 
-    <!-- FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -388,27 +405,34 @@
             },
             toggleFullscreen() {
                 window.Sound.play('click');
-                const btn = document.getElementById('btn-fullscreen');
+                const elem = document.documentElement;
+                
                 if (!document.fullscreenElement) {
-                    const el = document.documentElement;
-                    const r = el.requestFullscreen || el.webkitRequestFullscreen;
-                    if (r) {
-                        r.call(el).then(() => {
+                    // Вход в полноэкранный режим
+                    if (elem.requestFullscreen) {
+                        elem.requestFullscreen().then(() => {
+                            // Попытка заблокировать ориентацию в landscape
                             if (screen.orientation && screen.orientation.lock) {
-                                screen.orientation.lock('landscape').catch(e => {});
+                                screen.orientation.lock('landscape').catch((e) => {
+                                    console.log("Orientation lock not supported or denied");
+                                });
                             }
-                            this.showToast("ПОВЕРНИТЕ УСТРОЙСТВО");
-                        }).catch(e => console.log("FS Blocked"));
+                        }).catch(err => {
+                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                        });
                     }
                 } else {
-                    const e = document.exitFullscreen || document.webkitExitFullscreen;
-                    if (e) e.call(document);
+                    // Выход
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
                 }
             },
             syncIcon() {
                 const btn = document.getElementById('btn-fullscreen');
                 const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-                if(btn) btn.innerHTML = isFs ? "&#10539;" : "&#9974;";
+                // Меняем иконку: если полный экран - крестик (выход), если нет - экран (вход)
+                if(btn) btn.innerHTML = isFs ? "&#10005;" : "📺";
             }
         };
 
@@ -426,7 +450,7 @@
             { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ВХОДЯЩЕЕ...", log: "Получено зашифрованное сообщение." },
             { id: "l1_choice", type: "choice", header: "ПОДОЗРИТЕЛЬНАЯ ССЫЛКА", desc: "Письмо: 'Срочно смените пароль по ссылке ниже'. Что сделаете?", options: [
                 { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно. Это типичный фишинг.", score: 500 },
-                { text: "� ПЕРЕЙТИ", correct: false, feedback: "Ошибка! Ваши учетные данные перехвачены.", score: 0, damage: 35 }
+                { text: "☣ ПЕРЕЙТИ", correct: false, feedback: "Ошибка! Ваши учетные данные перехвачены.", score: 0, damage: 35 }
             ]},
             
             // УРОВЕНЬ 2: USB (ФЛЕШКА)
@@ -637,4 +661,3 @@
     </script>
 </body>
 </html>
-
