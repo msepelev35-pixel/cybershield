@@ -58,7 +58,6 @@
             object-position: center;
         }
 
-        /* СПЕЦИАЛЬНО ДЛЯ ВЕРТИКАЛЬНЫХ ЭКРАНОВ */
         @media (orientation: portrait) {
             video {
                 object-fit: contain; 
@@ -69,7 +68,6 @@
 
         video.playing { opacity: 1; display: block; }
 
-        /* Фоновый паттерн */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: 
@@ -218,7 +216,7 @@
         </div>
 
         <div id="game-viewport">
-            <video id="video-layer" playsinline webkit-playsinline preload="auto" muted></video>
+            <video id="video-layer" playsinline webkit-playsinline preload="auto" muted style="background:transparent;"></video>
             
             <div id="sim-layer">
                 <div class="radar"></div>
@@ -460,54 +458,49 @@
             ]}
         ];
 
-        // --- PRELOADER SYSTEM (ADDED) ---
+        // --- SMART LAZY PRELOADER (SOLUTION 2) ---
         window.Preloader = {
-            loaded: 0,
-            total: 0,
-            async loadAll() {
-                const videos = SCENARIOS.filter(s => s.type === 'video').map(s => s.src);
-                const uniqueVideos = [...new Set(videos)];
-                this.total = uniqueVideos.length;
-
-                if (this.total === 0) return;
-
+            loadedCount: 0,
+            cache: {},
+            
+            // 1. Грузим только ВАЖНЫЕ видео для старта (Интро)
+            async init() {
+                const priority = ["intro.mp4", "ai_scan.mp4"]; // Только начало
                 const toast = document.getElementById('toast');
-                if(toast) {
-                    toast.style.opacity = '1';
-                    toast.innerText = "Кэширование медиа: 0%";
-                }
+                if(toast) { toast.style.opacity = '1'; toast.innerText = "Подготовка системы..."; }
 
-                const promises = uniqueVideos.map(src => {
-                    return fetch(src)
-                        .then(response => {
-                            if (!response.ok) throw new Error("Network response was not ok");
-                            return response.blob();
-                        })
-                        .then(blob => {
-                            const blobUrl = URL.createObjectURL(blob);
-                            SCENARIOS.forEach(s => {
-                                if (s.src === src) s.src = blobUrl;
-                            });
-                            this.loaded++;
-                            const percent = Math.round((this.loaded / this.total) * 100);
-                            if(toast) toast.innerText = `Кэширование медиа: ${percent}%`;
-                        })
-                        .catch(err => {
-                            console.warn("Preload failed for", src, err);
-                        });
-                });
+                await this.loadList(priority);
                 
-                await Promise.allSettled(promises);
-                
-                if(toast) {
-                    toast.innerText = "Система готова";
+                if(toast) { 
+                    toast.innerText = "Система готова"; 
                     setTimeout(() => toast.style.opacity = '0', 2000);
                 }
+
+                // 2. Остальное докачиваем тихо в фоне
+                const others = SCENARIOS.filter(s => s.type === 'video' && !priority.includes(s.src)).map(s => s.src);
+                this.loadList(others, true); // true = фоновый режим (без уведомлений)
+            },
+
+            async loadList(files, isBackground = false) {
+                const promises = files.map(src => {
+                    if (this.cache[src]) return Promise.resolve(); // Уже есть
+                    return fetch(src)
+                        .then(r => r.blob())
+                        .then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            this.cache[src] = url;
+                            // Подменяем ссылку в сценарии
+                            SCENARIOS.forEach(s => { if(s.src === src) s.src = url; });
+                            if(!isBackground) console.log(`Loaded: ${src}`);
+                        })
+                        .catch(e => console.warn(`Failed ${src}`, e));
+                });
+                if (!isBackground) await Promise.allSettled(promises); // Ждем только важные
             }
         };
         
-        // Start preloading immediately
-        window.Preloader.loadAll();
+        // Запуск
+        window.Preloader.init();
 
         window.Game = {
             state: { stepIndex: 0, score: 0, health: 100, user: "GUEST" },
