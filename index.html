@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Миссия: Киберщит | Mobile Optimized</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="preload" as="video" href="intro.mp4" type="video/mp4">
     <style>
         /* --- СТИЛИ (OPTIMIZED) --- */
         :root {
             --neon-blue: #00f3ff;
             --neon-green: #0aff0a;
             --neon-red: #ff003c;
-            --bg-color: #000000; /* Полностью черный фон для рамок */
+            --bg-color: #000000;
             --glass: rgba(10, 16, 26, 0.96);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
@@ -33,7 +34,7 @@
             position: absolute; inset: 0; background: #000;
             overflow: hidden; display: flex; flex-direction: column;
             width: 100%; height: 100%; z-index: 10;
-            justify-content: center; /* Центрирование контента по вертикали */
+            justify-content: center;
         }
         
         #click-trap {
@@ -53,7 +54,6 @@
             background: #000; 
             transform: translateZ(0); 
             will-change: opacity;
-            /* По умолчанию (для горизонтали) заполняем экран */
             object-fit: cover; 
             object-position: center;
         }
@@ -61,7 +61,6 @@
         /* СПЕЦИАЛЬНО ДЛЯ ВЕРТИКАЛЬНЫХ ЭКРАНОВ */
         @media (orientation: portrait) {
             video {
-                /* В вертикальном режиме видео вписывается, сохраняя пропорции (черные полосы сверху/снизу) */
                 object-fit: contain; 
                 width: 100%;
                 height: 100%;
@@ -70,7 +69,7 @@
 
         video.playing { opacity: 1; display: block; }
 
-        /* Фоновый паттерн (сетка) */
+        /* Фоновый паттерн */
         #game-viewport::after {
             content: " "; position: absolute; inset: 0;
             background: 
@@ -408,21 +407,14 @@
                 const elem = document.documentElement;
                 
                 if (!document.fullscreenElement) {
-                    // Вход в полноэкранный режим
                     if (elem.requestFullscreen) {
                         elem.requestFullscreen().then(() => {
-                            // Попытка заблокировать ориентацию в landscape
                             if (screen.orientation && screen.orientation.lock) {
-                                screen.orientation.lock('landscape').catch((e) => {
-                                    console.log("Orientation lock not supported or denied");
-                                });
+                                screen.orientation.lock('landscape').catch((e) => {});
                             }
-                        }).catch(err => {
-                            console.error(`Error attempting to enable fullscreen: ${err.message}`);
-                        });
+                        }).catch(err => {});
                     }
                 } else {
-                    // Выход
                     if (document.exitFullscreen) {
                         document.exitFullscreen();
                     }
@@ -431,7 +423,6 @@
             syncIcon() {
                 const btn = document.getElementById('btn-fullscreen');
                 const isFs = document.fullscreenElement || document.webkitFullscreenElement;
-                // Меняем иконку: если полный экран - крестик (выход), если нет - экран (вход)
                 if(btn) btn.innerHTML = isFs ? "&#10005;" : "📺";
             }
         };
@@ -439,37 +430,28 @@
         document.addEventListener('fullscreenchange', window.UI.syncIcon);
         document.addEventListener('webkitfullscreenchange', window.UI.syncIcon);
 
-        // --- SCENARIOS (9 VIDEOS, USB & HACK ADDED) ---
+        // --- SCENARIOS ---
         const SCENARIOS = [
-            // ВСТУПЛЕНИЕ
             { id: "intro", type: "video", src: "intro.mp4", simText: "ИНИЦИАЛИЗАЦИЯ...", log: "Запуск протокола защиты..." },
             { id: "ai_scan", type: "video", src: "ai_scan.mp4", simText: "СКАНИРОВАНИЕ...", log: "Анализ уязвимостей..." },
-            
-            // УРОВЕНЬ 1: ФИШИНГ
             { id: "l1_theory", type: "education", title: "ФИШИНГ", text: "Метод обмана пользователей для кражи данных. Часто маскируется под официальные запросы.", log: "Обнаружен подозрительный трафик." },
             { id: "l1_act", type: "video", src: "phishing.mp4", simText: "ВХОДЯЩЕЕ...", log: "Получено зашифрованное сообщение." },
             { id: "l1_choice", type: "choice", header: "ПОДОЗРИТЕЛЬНАЯ ССЫЛКА", desc: "Письмо: 'Срочно смените пароль по ссылке ниже'. Что сделаете?", options: [
                 { text: "🛡️ УДАЛИТЬ", correct: true, feedback: "Верно. Это типичный фишинг.", score: 500 },
                 { text: "☣ ПЕРЕЙТИ", correct: false, feedback: "Ошибка! Ваши учетные данные перехвачены.", score: 0, damage: 35 }
             ]},
-            
-            // УРОВЕНЬ 2: USB (ФЛЕШКА)
             { id: "l3_edu", type: "education", title: "СЪЕМНЫЕ НОСИТЕЛИ", text: "Никогда не подключайте найденные флешки. Они могут содержать вредоносное ПО.", log: "Анализ: Внешнее устройство." },
             { id: "l3_act", type: "video", src: "usb.mp4", simText: "СКАНИРОВАНИЕ USB...", log: "Подключено неизвестное устройство." },
             { id: "l3_choice", type: "choice", header: "НАЙДЕНА ФЛЕШКА", desc: "Вы нашли флешку с надписью 'СЕКРЕТНО' в коридоре. Ваши действия?", options: [
                 { text: "🔒 ОТДАТЬ ОХРАНЕ", correct: true, feedback: "Правильно. Это мог быть вирус.", score: 1000 },
                 { text: "🔌 ВСТАВИТЬ В ПК", correct: false, feedback: "Ошибка! Вирус проник в сеть.", score: 0, damage: 40 }
             ]},
-
-            // УРОВЕНЬ 3: ВЗЛОМ (НОВЫЙ)
             { id: "l4_edu", type: "education", title: "ПАРОЛИ", text: "Слабые пароли (123456) взламываются за секунды.", log: "Анализ: Brute-Force атака." },
             { id: "l4_act", type: "video", src: "hack.mp4", simText: "ПОПЫТКА ВХОДА...", log: "Обнаружен перебор паролей." },
             { id: "l4_choice", type: "choice", header: "ВЗЛОМ АККАУНТА", desc: "Система сообщает о попытке входа с незнакомого IP. Ваши действия?", options: [
                 { text: "🔐 СМЕНИТЬ ПАРОЛЬ", correct: true, feedback: "Отлично. Вы отсекли хакера.", score: 1000 },
                 { text: "🤷 ИГНОРИРОВАТЬ", correct: false, feedback: "Ошибка. Ваш аккаунт взломан.", score: 0, damage: 50 }
             ]},
-
-            // УРОВЕНЬ 4: ВИРУС (ФИНАЛ)
             { id: "l2_alert", type: "video", src: "virus_map.mp4", simText: "ТРЕВОГА...", log: "ВНИМАНИЕ: Вирусная активность." },
             { id: "l2_boss", type: "video", src: "glitch.mp4", simText: "ВЗЛОМ...", log: "Хакер перехватил управление." },
             { id: "l2_choice", type: "choice", header: "ШИФРОВАЛЬЩИК", desc: "Экран заблокирован. Злоумышленник требует выкуп. Что будете делать?", options: [
@@ -477,6 +459,55 @@
                 { text: "🔧 ВОССТАНОВИТЬ", correct: true, feedback: "Успех! Система восстановлена.", score: 1000 }
             ]}
         ];
+
+        // --- PRELOADER SYSTEM (ADDED) ---
+        window.Preloader = {
+            loaded: 0,
+            total: 0,
+            async loadAll() {
+                const videos = SCENARIOS.filter(s => s.type === 'video').map(s => s.src);
+                const uniqueVideos = [...new Set(videos)];
+                this.total = uniqueVideos.length;
+
+                if (this.total === 0) return;
+
+                const toast = document.getElementById('toast');
+                if(toast) {
+                    toast.style.opacity = '1';
+                    toast.innerText = "Кэширование медиа: 0%";
+                }
+
+                const promises = uniqueVideos.map(src => {
+                    return fetch(src)
+                        .then(response => {
+                            if (!response.ok) throw new Error("Network response was not ok");
+                            return response.blob();
+                        })
+                        .then(blob => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            SCENARIOS.forEach(s => {
+                                if (s.src === src) s.src = blobUrl;
+                            });
+                            this.loaded++;
+                            const percent = Math.round((this.loaded / this.total) * 100);
+                            if(toast) toast.innerText = `Кэширование медиа: ${percent}%`;
+                        })
+                        .catch(err => {
+                            console.warn("Preload failed for", src, err);
+                        });
+                });
+                
+                await Promise.allSettled(promises);
+                
+                if(toast) {
+                    toast.innerText = "Система готова";
+                    setTimeout(() => toast.style.opacity = '0', 2000);
+                }
+            }
+        };
+        
+        // Start preloading immediately
+        window.Preloader.loadAll();
 
         window.Game = {
             state: { stepIndex: 0, score: 0, health: 100, user: "GUEST" },
@@ -515,13 +546,11 @@
                 v.classList.remove('playing');
                 sim.classList.remove('fade-out');
                 
-                // TURBO: Отключаем эффекты
                 document.getElementById('game-viewport').classList.add('video-mode');
                 document.getElementById('sim-text').innerText = s.simText;
 
                 v.src = s.src; v.load();
                 
-                // ЗАДЕРЖКА 50мс
                 setTimeout(() => {
                     const promise = v.play();
                     if (promise !== undefined) {
@@ -593,7 +622,6 @@
                 
                 setTimeout(() => { 
                     this.isBusy = false; 
-                    // Если здоровье 0, то ФИНАЛ (проигрыш), иначе ДАЛЬШЕ
                     if (this.state.health <= 0) {
                         this.finish(false); 
                     } else {
@@ -623,7 +651,6 @@
                 const v = document.getElementById('video-layer');
                 const sim = document.getElementById('sim-layer');
                 
-                // TURBO: Отключаем эффекты
                 document.getElementById('game-viewport').classList.add('video-mode');
                 v.src = isWin ? "win.mp4" : "lose.mp4"; v.load();
                 
