@@ -400,24 +400,33 @@
                 if (!term.classList.contains('collapsed')) { btn.innerHTML = "&#10005;"; trap.classList.add('active'); } 
                 else { btn.innerHTML = "&#9776;"; trap.classList.remove('active'); }
             },
-            toggleFullscreen() {
+            
+            // --- НОВАЯ БЕЗОПАСНАЯ КНОПКА ЭКРАНА ---
+            async toggleFullscreen() {
                 window.Sound.play('click');
                 const elem = document.documentElement;
                 
-                if (!document.fullscreenElement) {
-                    if (elem.requestFullscreen) {
-                        elem.requestFullscreen().then(() => {
-                            if (screen.orientation && screen.orientation.lock) {
-                                screen.orientation.lock('landscape').catch((e) => {});
-                            }
-                        }).catch(err => {});
+                // 1. Пытаемся развернуть/свернуть
+                try {
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        if (elem.requestFullscreen) await elem.requestFullscreen();
+                        else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
+                    } else {
+                        if (document.exitFullscreen) await document.exitFullscreen();
+                        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
                     }
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    }
-                }
+                } catch (err) { console.log("Fullscreen Error:", err); }
+
+                // 2. Пытаемся повернуть (безопасно)
+                setTimeout(() => {
+                    try {
+                        if (screen.orientation && screen.orientation.lock) {
+                            screen.orientation.lock('landscape').catch((e) => {});
+                        }
+                    } catch (e) {}
+                }, 200);
             },
+
             syncIcon() {
                 const btn = document.getElementById('btn-fullscreen');
                 const isFs = document.fullscreenElement || document.webkitFullscreenElement;
@@ -458,14 +467,22 @@
             ]}
         ];
 
-        // --- SMART LAZY PRELOADER (SOLUTION 2) ---
+        // --- SMART LAZY PRELOADER (UNIVERSAL) ---
         window.Preloader = {
             loadedCount: 0,
             cache: {},
             
-            // 1. Грузим только ВАЖНЫЕ видео для старта (Интро)
             async init() {
-                const priority = ["intro.mp4", "ai_scan.mp4"]; // Только начало
+                // ПРОВЕРКА ДЛЯ ФЛЕШКИ (НОВАЯ)
+                // Если мы открыты локально, пропускаем сложную загрузку
+                if (window.location.protocol === 'file:') {
+                    const toast = document.getElementById('toast');
+                    if(toast) { toast.innerText = "РЕЖИМ OFFLINE"; setTimeout(() => toast.style.opacity = '0', 2000); }
+                    return; // Просто выходим, игра будет брать файлы напрямую
+                }
+
+                // Если онлайн - грузим красиво
+                const priority = ["intro.mp4", "ai_scan.mp4"]; 
                 const toast = document.getElementById('toast');
                 if(toast) { toast.style.opacity = '1'; toast.innerText = "Подготовка системы..."; }
 
@@ -476,30 +493,27 @@
                     setTimeout(() => toast.style.opacity = '0', 2000);
                 }
 
-                // 2. Остальное докачиваем тихо в фоне
                 const others = SCENARIOS.filter(s => s.type === 'video' && !priority.includes(s.src)).map(s => s.src);
-                this.loadList(others, true); // true = фоновый режим (без уведомлений)
+                this.loadList(others, true); 
             },
 
             async loadList(files, isBackground = false) {
                 const promises = files.map(src => {
-                    if (this.cache[src]) return Promise.resolve(); // Уже есть
+                    if (this.cache[src]) return Promise.resolve();
                     return fetch(src)
                         .then(r => r.blob())
                         .then(blob => {
                             const url = URL.createObjectURL(blob);
                             this.cache[src] = url;
-                            // Подменяем ссылку в сценарии
                             SCENARIOS.forEach(s => { if(s.src === src) s.src = url; });
                             if(!isBackground) console.log(`Loaded: ${src}`);
                         })
                         .catch(e => console.warn(`Failed ${src}`, e));
                 });
-                if (!isBackground) await Promise.allSettled(promises); // Ждем только важные
+                if (!isBackground) await Promise.allSettled(promises);
             }
         };
         
-        // Запуск
         window.Preloader.init();
 
         window.Game = {
