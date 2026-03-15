@@ -301,22 +301,55 @@
         import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Timestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
-        const firebaseConfig = { apiKey: "AIzaSyD6szist3gWxxnF3flxdJzFgjbPjmjq310", authDomain: "cybershield-b4422.firebaseapp.com", projectId: "cybershield-b4422", storageBucket: "cybershield-b4422.firebasestorage.app", messagingSenderId: "1048501198341", appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c", measurementId: "G-68L6Z80PX5" };
+        // ВНИМАНИЕ: Я удалил measurementId, чтобы код больше не ломался из-за отсутствия аналитики
+        const firebaseConfig = { 
+            apiKey: "AIzaSyD6szist3gWxxnF3flxdJzFgjbPjmjq310", 
+            authDomain: "cybershield-b4422.firebaseapp.com", 
+            projectId: "cybershield-b4422", 
+            storageBucket: "cybershield-b4422.firebasestorage.app", 
+            messagingSenderId: "1048501198341", 
+            appId: "1:1048501198341:web:ad9d7f74c145a5a0a3466c" 
+        };
+        
         let db = null; let isCloudActive = false;
-        try { if (firebaseConfig.apiKey) { const app = initializeApp(firebaseConfig); db = getFirestore(app); isCloudActive = true; logToTerminal("CLOUD: Подключено", "cloud"); } } catch (e) { console.error(e); }
+        try { 
+            if (firebaseConfig.apiKey) { 
+                const app = initializeApp(firebaseConfig); 
+                db = getFirestore(app); 
+                isCloudActive = true; 
+                logToTerminal("CLOUD: Подключено", "cloud"); 
+            } 
+        } catch (e) { console.error("Ошибка инициализации БД:", e); }
 
         window.Stats = {
             async save(record) {
+                // Всегда сначала сохраняем на устройство (безопасность)
                 const localData = JSON.parse(localStorage.getItem('CS_GM')) || [];
                 localData.push(record);
                 localStorage.setItem('CS_GM', JSON.stringify(localData));
+
+                // Попытка отправить в облако
                 if (db && isCloudActive) {
                     try { 
                         const auth = getAuth();
                         if (!auth.currentUser) await signInAnonymously(auth);
-                        await addDoc(collection(db, "mission_results"), { ...record, timestamp: Timestamp.now(), uid: auth.currentUser?.uid || 'anon' }); 
-                        logToTerminal("Результаты загружены", "success"); 
-                    } catch (e) { logToTerminal("Сбой сети, сохранено локально", "warn"); }
+                        
+                        await addDoc(collection(db, "mission_results"), { 
+                            ...record, 
+                            timestamp: Timestamp.now(), 
+                            uid: auth.currentUser?.uid || 'anon' 
+                        }); 
+                        
+                        // ===== ДОБАВЛЕНО ВСПЛЫВАЮЩЕЕ УВЕДОМЛЕНИЕ НА ЭКРАН =====
+                        window.UI.showToast("ДАННЫЕ ОТПРАВЛЕНЫ В ТАБЛИЦУ!");
+                        
+                        // Пишем в логи терминала
+                        logToTerminal("Данные отправлены в таблицу", "success"); 
+                        console.log("УСПЕХ: Данные загружены в Firebase!");
+                    } catch (e) { 
+                        logToTerminal("Сбой сети, сохранено локально", "warn"); 
+                        console.error("Ошибка Firebase:", e);
+                    }
                 }
             },
             async show() {
@@ -332,7 +365,9 @@
                         if (!auth.currentUser) await signInAnonymously(auth);
                         const q = query(collection(db, "mission_results"), orderBy("timestamp", "desc"), limit(12)); 
                         const snapshot = await getDocs(q); snapshot.forEach((doc) => data.push(doc.data())); 
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error("Ошибка чтения архива:", e);
+                    }
                 }
                 if (data.length === 0) { data = JSON.parse(localStorage.getItem('CS_GM')) || []; data.reverse(); }
                 this.renderTable(data);
