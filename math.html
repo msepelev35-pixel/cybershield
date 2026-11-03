@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>EGE MASTER: MATH CHAIN (10 LEVELS)</title>
+    <style>
+        :root { --neon-blue: #00d4ff; --neon-green: #10b981; --neon-purple: #b026ff; --neon-red: #ef4444; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        
+        body { 
+            margin: 0; padding: 0; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            background: #0f172a; color: #f8fafc; 
+            overflow-x: hidden; min-height: 100vh; 
+            display: flex; flex-direction: column; align-items: center; 
+            overscroll-behavior: none; touch-action: pan-y; 
+        }
+
+        /* --- ВЕРХНЯЯ ПАНЕЛЬ --- */
+        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.98); padding: 12px 20px; border-bottom: 2px solid var(--neon-blue); position: sticky; top: 0; z-index: 2000; box-shadow: 0 4px 15px rgba(0,212,255,0.2); display: none; }
+        .menu-btn { background: transparent; color: var(--neon-blue); border: 2px solid var(--neon-blue); font-size: 1rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .xp-counter { font-size: 1.2rem; font-weight: bold; color: #f59e0b; background: rgba(245,158,11,0.1); padding: 5px 10px; border-radius: 8px; border: 1px solid #f59e0b; }
+
+        /* --- СТАРТ И ФИНАЛ --- */
+        .overlay-window { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .info-box { background: #1e293b; border: 4px solid var(--neon-blue); padding: 25px; border-radius: 15px; max-width: 600px; width: 100%; text-align: center; max-height: 95vh; overflow-y: auto; }
+        
+        .input-box { background: rgba(0,0,0,0.3); border: 2px solid var(--neon-blue); color: #fff; font-size: 1.2rem; text-align: center; width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 10px; text-transform: uppercase; transition: 0.3s; }
+        .input-box:focus { border-color: var(--neon-green); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+        .input-box:read-only { color: #94a3b8; opacity: 0.6; border-color: #334155; cursor: not-allowed; }
+
+        .btn { background: rgba(0,0,0,0.5); border: 2px solid var(--neon-blue); color: #fff; padding: 15px 20px; font-size: 1.2rem; font-weight: bold; border-radius: 12px; cursor: pointer; transition: 0.1s; text-transform: uppercase; width: 100%; }
+        .btn:active { transform: translateY(3px); background: var(--neon-blue); color: #000; }
+
+        /* --- ИГРОВОЙ ЭКРАН --- */
+        .game-card { display: none; width: 100%; max-width: 1000px; padding: 20px; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 350px; }
+        .game-card.active { display: flex; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+        
+        .level-title { font-size: 1.5rem; color: #cbd5e1; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* --- КОНТЕЙНЕР ЦЕПОЧКИ --- */
+        .chain-container { 
+            display: flex; 
+            flex-wrap: nowrap; 
+            overflow-x: auto; 
+            align-items: center; 
+            width: 100%;
+            padding: 30px 40px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 15px; 
+            border: 2px solid #334155;
+            scroll-behavior: smooth;
+        }
+        .chain-container::-webkit-scrollbar { height: 8px; }
+        .chain-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .chain-container::-webkit-scrollbar-thumb { background: var(--neon-purple); border-radius: 10px; }
+
+        .chain-node { display: flex; align-items: center; flex-shrink: 0; }
+        
+        /* КРУЖОЧКИ (ЧИСЛА) */
+        .circle { 
+            width: 80px; height: 80px; 
+            border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 1.8rem; font-weight: bold; 
+            background: #1e293b; border: 3px solid #64748b; color: #94a3b8; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: 0.3s;
+            position: relative;
+        }
+        .circle.done { border-color: var(--neon-green); background: rgba(16, 185, 129, 0.2); color: var(--neon-green); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+        .circle.start { border-color: #f59e0b; background: rgba(245, 158, 11, 0.2); color: #f59e0b; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+        .circle.active { 
+            border-color: var(--neon-blue); 
+            background: rgba(0, 212, 255, 0.2); 
+            color: #fff; 
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.6); 
+            transform: scale(1.1);
+        }
+
+        /* СТРЕЛКИ */
+        .arrow { 
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 15px; font-size: 1.4rem; font-weight: bold; color: #cbd5e1; 
+            position: relative; padding-bottom: 5px;
+        }
+        .arrow::after { 
+            content: '➔'; position: absolute; bottom: -15px; font-size: 1.5rem; color: #cbd5e1;
+        }
+        .arrow.active { color: var(--neon-blue); }
+        .arrow.active::after { color: var(--neon-blue); }
+
+        /* --- САЛЮТ (ФЕЙЕРВЕРК) --- */
+        .fw-particle {
+            position: fixed;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.8s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.8s ease-out;
+        }
+
+        /* --- КЛАВИАТУРА --- */
+        .keyboard { display: none; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 800px; background: rgba(15, 23, 42, 0.98); padding: 10px; border-top: 2px solid var(--neon-blue); flex-direction: column; gap: 6px; z-index: 8000; box-shadow: 0 -10px 20px rgba(0,0,0,0.5); }
+        .key-row { display: flex; justify-content: center; gap: 5px; width: 100%; }
+        .key { background: #e2e8f0; color: #0f172a; flex: 1; height: 55px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 1.5rem; font-weight: bold; touch-action: manipulation; box-shadow: 0 4px 0 #94a3b8; min-width: 40px; overflow: hidden; }
+        .key:active { transform: translateY(4px); box-shadow: none; background: #cbd5e1; }
+        .key-spec { background: #334155; color: #fff; box-shadow: 0 4px 0 #1e293b; }
+        .key-spec:active { background: #475569; }
+        .key-ent { background: var(--neon-green); color: #fff; box-shadow: 0 4px 0 #059669; }
+        .key-del { background: var(--neon-red); color: #fff; box-shadow: 0 4px 0 #b91c1c; }
+
+        /* --- РОБОТ & ОШИБКА --- */
+        #robot-avatar { position: fixed; bottom: 20px; right: 20px; width: 100px; height: 100px; border-radius: 50%; background: #fff; border: 4px solid var(--neon-blue); z-index: 9000; display: none; align-items: center; justify-content: center; font-size: 55px; box-shadow: 0 0 20px var(--neon-blue); }
+        
+        #error-banner { position: fixed; top: 5%; left: 50%; transform: translateX(-50%); background: #1e293b; border: 3px solid var(--neon-red); color: #fff; padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; z-index: 9900; display: none; flex-direction: column; align-items: center; text-align: center; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.8); }
+        
+        /* --- MEDIA QUERIES --- */
+        @media (max-width: 600px) {
+            .game-card { padding: 10px; padding-bottom: 350px; }
+            .circle { width: 70px; height: 70px; font-size: 1.5rem; }
+            .key { height: 50px; font-size: 1.3rem; }
+            #robot-avatar { width: 90px; height: 90px; font-size: 45px; }
+        }
+        @media (orientation: landscape) and (max-height: 500px) {
+            .info-box { padding: 15px; font-size: 0.9rem; }
+            .btn { padding: 10px 15px; font-size: 1rem; }
+            .input-box { font-size: 1rem; padding: 8px; margin-bottom: 8px; }
+            .keyboard { padding: 5px; gap: 4px; }
+            .key { height: 45px; font-size: 1.2rem; box-shadow: 0 2px 0 #94a3b8;}
+            .key:active { transform: translateY(2px); }
+            .game-card { padding-bottom: 220px; }
+            #error-banner { padding: 10px; }
+            .chain-container { padding: 20px 20px; }
+            .circle { width: 65px; height: 65px; font-size: 1.3rem; border-width: 2px; }
+            .arrow { margin: 0 10px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<script>
+    // --- ЗВУКОВОЙ ДВИЖОК (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new AudioContext();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'error') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+</script>
+
+    <div class="top-bar" id="top-bar">
+        <button class="menu-btn" onclick="showDashboard()">☰ MENU</button>
+        <div class="xp-counter" id="ui-xp">⭐ 0 XP</div>
+    </div>
+
+    <!-- СТАРТ -->
+    <div class="overlay-window" id="start-modal" style="display:flex;">
+        <div class="info-box">
+            <h1 style="color:var(--neon-blue); margin-top:0; font-size: 2.2rem;">МАТЕМАТИКА: ЦЕПОЧКИ</h1>
+            <div style="font-size: 4rem; margin: 5px 0;">🧮🧠</div>
+            <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; text-align: left; margin-bottom: 15px; font-size: 1rem;">
+                <b>ПРАВИЛА ИГРЫ:</b><br>
+                Двигайся по цепочке от кружка к кружку. Вписывай промежуточные ответы.<br>
+                10 уровней разной сложности со звуком.<br>
+                Верный шаг: <b>+100 XP</b><br>
+                Ошибка: <b style="color:var(--neon-red);">-30 XP</b>
+            </div>
+            
+            <input type="text" id="student-name" class="input-box" placeholder="ВВЕДИ ИМЯ И ФАМИЛИЮ" autocomplete="off" spellcheck="false">
+            <input type="text" id="student-class" class="input-box" placeholder="КЛАСС ИЛИ ГОРОД (напр. 6-А)" autocomplete="off" spellcheck="false">
+            
+            <div id="btn-group-start" style="display:flex; flex-direction:column; gap:12px; width:100%;">
+                <button class="btn" style="background:var(--neon-green); color:#fff;" onclick="initApp(true)">НАЧАТЬ 🚀</button>
+            </div>
+            <div id="btn-group-saved" style="display:none; flex-direction:column; gap:12px; width:100%;">
+                <button class="btn" id="btn-continue" style="background:var(--neon-green);" onclick="initApp(false)">ПРОДОЛЖИТЬ</button>
+                <button class="btn" id="btn-restart" style="background:var(--neon-blue); color:#000;" onclick="initApp(true)">СБРОСИТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПЛАШКА ОШИБКИ -->
+    <div id="error-banner">
+        <h2 style="color:var(--neon-red); margin: 0 0 10px 0;">ОШИБКА В РАСЧЕТАХ!</h2>
+        <div style="font-size:1.2rem; margin-bottom:10px;">Проверь вычисления!</div>
+        <div style="font-size:1rem; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; width:100%; text-align:center;">Штраф <b style="color:var(--neon-red);">-30 XP</b>.<br>Считай внимательнее!</div>
+        <button class="btn" style="background:var(--neon-blue); color:#000; margin-top:15px; padding:12px;" onpointerdown="closeErrorBanner()">ПОПРОБОВАТЬ СНОВА</button>
+    </div>
+
+    <!-- ИГРОВОЙ ЭКРАН -->
+    <div class="game-card" id="screen-game">
+        <div class="level-title" id="level-title">Пример 1</div>
+        <div class="chain-container" id="chain-container"></div>
+    </div>
+
+    <!-- КЛАВИАТУРА -->
+    <div class="keyboard" id="keyboard"></div>
+
+    <div id="robot-avatar">🤖</div>
+
+    <!-- ФИНАЛ -->
+    <div class="overlay-window" id="screen-final">
+        <div class="info-box" style="border-color:var(--neon-green);">
+            <h1 style="color:var(--neon-green); font-size: 2.8rem; margin-top:0;">ОЦЕНКА: <span id="final-grade">5</span></h1>
+            <div style="font-size: 6rem; margin: 10px 0;">🏆</div>
+            <h3 style="color:#aaa;">ТВОЙ ОПЫТ:</h3>
+            <div style="font-size: 3.5rem; font-weight: bold; color: #f59e0b; margin: 10px 0;" id="final-xp">0 XP</div>
+            <div style="display:flex; flex-direction:column; gap:12px; width:100%; margin-top: 20px;">
+                <button class="btn" style="background:var(--neon-red); border-color:#fff;" onclick="hardReset()">🔄 ИГРАТЬ ЕЩЕ РАЗ</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function () { window.history.go(1); };
+
+    function preloadAssets() { 
+        setTimeout(() => { console.log("Assets and Audio Preloaded"); }, 500); 
+    }
+
+    const LEVELS = [
+        { title: "Уровень 1 из 10", start: 50, steps: [ {op: "+ 14", ans: 64}, {op: ": 8", ans: 8}, {op: "· 12", ans: 96}, {op: "- 20", ans: 76} ] },
+        { title: "Уровень 2 из 10", start: 120, steps: [ {op: ": 4", ans: 30}, {op: "- 15", ans: 15}, {op: "· 3", ans: 45}, {op: "+ 25", ans: 70} ] },
+        { title: "Уровень 3 из 10", start: 85, steps: [ {op: "- 25", ans: 60}, {op: ": 12", ans: 5}, {op: "· 14", ans: 70}, {op: "+ 30", ans: 100} ] },
+        { title: "Уровень 4 из 10", start: 72, steps: [ {op: ": 6", ans: 12}, {op: "· 5", ans: 60}, {op: "+ 15", ans: 75}, {op: "- 40", ans: 35} ] },
+        { title: "Уровень 5 из 10", start: 48, steps: [ {op: "+ 24", ans: 72}, {op: ": 8", ans: 9}, {op: "· 7", ans: 63}, {op: "- 13", ans: 50} ] },
+        { title: "Уровень 6 из 10", start: 100, steps: [ {op: "- 28", ans: 72}, {op: ": 4", ans: 18}, {op: "+ 12", ans: 30}, {op: "· 3", ans: 90} ] },
+        { title: "Уровень 7 из 10", start: 150, steps: [ {op: ": 5", ans: 30}, {op: "· 3", ans: 90}, {op: "- 45", ans: 45}, {op: ": 9", ans: 5} ] },
+        { title: "Уровень 8 из 10", start: 64, steps: [ {op: ": 16", ans: 4}, {op: "· 15", ans: 60}, {op: "+ 25", ans: 85}, {op: "- 17", ans: 68} ] },
+        { title: "Уровень 9 из 10", start: 200, steps: [ {op: "- 50", ans: 150}, {op: ": 25", ans: 6}, {op: "· 11", ans: 66}, {op: "+ 14", ans: 80} ] },
+        { title: "Уровень 10 из 10", start: 95, steps: [ {op: "- 15", ans: 80}, {op: ": 16", ans: 5}, {op: "· 18", ans: 90}, {op: "+ 10", ans: 100} ] }
+    ];
+
+    const SAVE_KEY = 'math_chain_v4_universal';
+    let state = { name: "", schClass: "", lvlIdx: 0, stepIdx: 0, score: 0, prog: false, sent: false };
+    let isLock = false;
+
+    const totalSteps = LEVELS.reduce((sum, lvl) => sum + lvl.steps.length, 0);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        preloadAssets();
+        checkSavedData();
+        buildKeyboard();
+        
+        document.body.addEventListener('pointerdown', initAudio, { once: true });
+    });
+
+    function checkSavedData() {
+        let saved = localStorage.getItem(SAVE_KEY);
+        if(saved) {
+            let p = JSON.parse(saved);
+            if(p.name) {
+                state = p;
+                let inpName = document.getElementById('student-name');
+                let inpClass = document.getElementById('student-class');
+                inpName.value = state.name;
+                inpClass.value = state.schClass || "";
+                
+                document.getElementById('btn-group-start').style.display = 'none';
+                document.getElementById('btn-group-saved').style.display = 'flex';
+                
+                if(state.score > 0 || state.prog || state.lvlIdx > 0 || state.stepIdx > 0) {
+                    document.getElementById('btn-restart').style.display = 'none';
+                    inpName.readOnly = true; inpName.style.opacity = '0.6';
+                    inpClass.readOnly = true; inpClass.style.opacity = '0.6';
+                }
+            }
+        }
+    }
+
+    function initApp(isRestart) {
+        initAudio(); 
+        let inpName = document.getElementById('student-name');
+        let inpClass = document.getElementById('student-class');
+        let n = inpName.value.trim();
+        let c = inpClass.value.trim();
+        
+        let hasError = false;
+        if(!n) { inpName.style.borderColor = 'var(--neon-red)'; hasError = true; }
+        if(!c) { inpClass.style.borderColor = 'var(--neon-red)'; hasError = true; }
+        
+        setTimeout(() => {
+            if(!inpName.readOnly) inpName.style.borderColor = 'var(--neon-blue)';
+            if(!inpClass.readOnly) inpClass.style.borderColor = 'var(--neon-blue)';
+        }, 1500);
+
+        if(hasError) return;
+        
+        if(isRestart) {
+            state = { name: n, schClass: c, lvlIdx: 0, stepIdx: 0, score: 0, prog: false, sent: false };
+        } else {
+            state.name = n; state.schClass = c;
+        }
+        
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+        document.getElementById('start-modal').style.display = 'none';
+        document.getElementById('top-bar').style.display = 'flex';
+        document.getElementById('screen-game').classList.add('active');
+        
+        updateXP();
+        renderLevel();
+    }
+
+    function renderLevel() {
+        if (state.lvlIdx >= LEVELS.length) {
+            document.getElementById('keyboard').style.display = 'none';
+            document.getElementById('chain-container').style.display = 'none';
+            document.getElementById('level-title').style.display = 'none';
+            showFinalScreen();
+            return;
+        }
+
+        const currentLvl = LEVELS[state.lvlIdx];
+        document.getElementById('level-title').innerText = currentLvl.title;
+        
+        const container = document.getElementById('chain-container');
+        container.innerHTML = ''; 
+
+        let startNode = document.createElement('div');
+        startNode.className = 'chain-node';
+        startNode.innerHTML = `<div class="circle start">${currentLvl.start}</div>`;
+        container.appendChild(startNode);
+
+        for (let i = 0; i < currentLvl.steps.length; i++) {
+            let stepData = currentLvl.steps[i];
+            let node = document.createElement('div');
+            node.className = 'chain-node';
+            
+            if (i < state.stepIdx) {
+                node.innerHTML = `<div class="arrow">${stepData.op}</div><div class="circle done">${stepData.ans}</div>`;
+            } else if (i === state.stepIdx) {
+                node.innerHTML = `<div class="arrow active">${stepData.op}</div><div class="circle active" id="active-input"></div>`;
+            } else {
+                node.style.display = 'none'; 
+                node.innerHTML = `<div class="arrow">${stepData.op}</div><div class="circle"></div>`;
+            }
+            container.appendChild(node);
+        }
+
+        document.getElementById('keyboard').style.display = 'flex';
+        
+        setTimeout(() => {
+            let activeEl = document.getElementById('active-input');
+            if(activeEl) {
+                activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }, 150);
+    }
+
+    function buildKeyboard() {
+        const kb = document.getElementById('keyboard');
+        
+        let r1 = document.createElement('div'); r1.className = 'key-row';
+        ['1','2','3','4','5'].forEach(k => {
+            let btn = document.createElement('div');
+            btn.className = 'key'; btn.innerText = k;
+            btn.onpointerdown = (e) => { e.preventDefault(); handleKey(k); };
+            r1.appendChild(btn);
+        });
+        kb.appendChild(r1);
+
+        let r2 = document.createElement('div'); r2.className = 'key-row';
+        ['6','7','8','9','0'].forEach(k => {
+            let btn = document.createElement('div');
+            btn.className = 'key'; btn.innerText = k;
+            btn.onpointerdown = (e) => { e.preventDefault(); handleKey(k); };
+            r2.appendChild(btn);
+        });
+        kb.appendChild(r2);
+
+        let r3 = document.createElement('div'); r3.className = 'key-row';
+        
+        let minus = document.createElement('div'); minus.className='key key-spec'; minus.innerText='-';
+        minus.style.flex = '1';
+        minus.onpointerdown = (e) => { e.preventDefault(); handleKey('-'); };
+        
+        let del = document.createElement('div'); del.className='key key-del'; del.innerText='DEL';
+        del.style.flex = '1.5';
+        del.onpointerdown = (e) => { e.preventDefault(); handleKey('DEL'); };
+        
+        let ent = document.createElement('div'); ent.className='key key-ent'; ent.innerText='ENTER';
+        ent.style.flex = '2';
+        ent.onpointerdown = (e) => { e.preventDefault(); submitAnswer(); };
+        
+        r3.appendChild(minus); r3.appendChild(del); r3.appendChild(ent);
+        kb.appendChild(r3);
+    }
+
+    function handleKey(k) {
+        if(isLock) return;
+        initAudio();
+        
+        let inp = document.getElementById('active-input');
+        if(!inp) return;
+        
+        if(k === 'DEL') { 
+            inp.innerText = inp.innerText.slice(0, -1); 
+            return; 
+        }
+        
+        if(inp.innerText.length < 5) {
+            inp.innerText += k;
+        }
+    }
+
+    function launchFirework(el) {
+        let rect = el.getBoundingClientRect();
+        let startX = rect.left + rect.width / 2;
+        let startY = rect.top + rect.height / 2;
+        const colors = ['#00d4ff', '#10b981', '#b026ff', '#f59e0b', '#ef4444', '#ffffff'];
+        
+        for(let i=0; i<30; i++) {
+            let p = document.createElement('div');
+            p.className = 'fw-particle';
+            p.style.left = startX + 'px';
+            p.style.top = startY + 'px';
+            p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            let angle = Math.random() * Math.PI * 2;
+            let radius = Math.random() * 120 + 30; 
+            let dx = Math.cos(angle) * radius;
+            let dy = Math.sin(angle) * radius;
+            
+            document.body.appendChild(p);
+            
+            setTimeout(() => {
+                p.style.transform = `translate(${dx}px, ${dy}px) scale(0)`;
+                p.style.opacity = '0';
+            }, 10);
+            
+            setTimeout(() => p.remove(), 800);
+        }
+    }
+
+    function submitAnswer() {
+        if(isLock) return;
+        initAudio();
+        
+        let inp = document.getElementById('active-input');
+        if(!inp || inp.innerText.trim() === '') return;
+        
+        let val = parseInt(inp.innerText.trim(), 10);
+        
+        isLock = true;
+        document.getElementById('keyboard').style.display = 'none';
+        
+        let currentLvl = LEVELS[state.lvlIdx];
+        let targetAns = currentLvl.steps[state.stepIdx].ans;
+        
+        if(val === targetAns) {
+            state.score += 100; updateXP(); 
+            playSound('correct'); 
+            launchFirework(inp); 
+            showRobot();
+            
+            inp.classList.remove('active'); inp.classList.add('done');
+            
+            setTimeout(() => {
+                state.stepIdx++;
+                if (state.stepIdx >= currentLvl.steps.length) {
+                    state.lvlIdx++;
+                    state.stepIdx = 0;
+                }
+                localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+                isLock = false; 
+                renderLevel();
+            }, 1200); 
+        } else {
+            state.score = Math.max(0, state.score - 30); 
+            updateXP();
+            playSound('error'); 
+            document.getElementById('error-banner').style.display = 'flex';
+        }
+    }
+
+    function showRobot() {
+        document.getElementById('error-banner').style.display = 'none';
+        let r = document.getElementById('robot-avatar');
+        r.style.display = 'flex'; r.innerHTML = '🎉';
+        setTimeout(() => r.style.display = 'none', 800);
+    }
+
+    function closeErrorBanner() {
+        document.getElementById('error-banner').style.display = 'none';
+        let inp = document.getElementById('active-input');
+        if(inp) inp.innerText = '';
+        document.getElementById('keyboard').style.display = 'flex';
+        isLock = false;
+    }
+
+    function updateXP() { document.getElementById('ui-xp').innerText = `⭐ ${state.score} XP`; }
+
+    function showFinalScreen() {
+        document.getElementById('screen-game').classList.remove('active');
+        document.getElementById('screen-final').style.display = 'flex';
+        document.getElementById('final-xp').innerText = `${state.score} XP`;
+        
+        let maxScore = totalSteps * 100; 
+        let pct = state.score / maxScore;
+        let grade = pct >= 0.85 ? 5 : (pct >= 0.65 ? 4 : (pct >= 0.40 ? 3 : 2));
+        document.getElementById('final-grade').innerText = grade;
+        state.prog = true;
+        
+        if(!state.sent) {
+            let combinedName = `${state.name} [${state.schClass}]`;
+            const URL = "https://script.google.com/macros/s/AKfycbxsP2z22Ov0ToagecCcEfW5VAJLKEmQu-Yjc4IL-3bJ-vZnjO39qEHshlfiwEA33XV1/exec";
+            fetch(URL + `?name=${encodeURIComponent(combinedName)}&score=${state.score}&grade=${grade}&theme=MATH_CHAIN_UNIVERSAL`, {mode:'no-cors'}).catch(()=>{});
+            state.sent = true;
+        }
+        
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    }
+
+    function showDashboard() {
+        if(confirm("Выйти на стартовый экран? Текущий прогресс будет сохранен.")) {
+            location.reload();
+        }
+    }
+
+    function hardReset() {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+    }
+</script>
+</body>
+</html>
